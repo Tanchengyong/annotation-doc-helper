@@ -1,0 +1,63 @@
+plugins {
+    id "java"
+    id "org.jetbrains.intellij" version "1.16.0"
+    id "com.github.johnrengelman.shadow" version "8.1.1"  // ✅ 确保插件应用
+}
+
+group = "com.tancy.plug"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+//dependencies {
+//    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+//}
+
+intellij {
+    version = "2022.1.4"
+    type = 'IC'
+    plugins = ["java"]
+    updateSinceUntilBuild =false
+}
+
+// ========== 关键修正点 ==========
+shadowJar {
+    // 包含所有依赖（或按需指定）
+    configurations = [project.configurations.runtimeClasspath]
+
+    // 重定位包路径（必须配置）
+    relocate 'com.fasterxml.jackson.**', 'com.tancy.fastjson.@1'  // @1 表示原路径的子包
+
+    // 排除 IDE 自带库
+    dependencies {
+        exclude(dependency('com.intellij:.*'))
+        exclude(dependency('org.jetbrains:.*'))
+    }
+
+    archiveClassifier = ''  // 移除 "-all" 后缀
+    mergeServiceFiles()
+}
+
+ //覆盖默认的 jar 任务，确保使用 shadowJar 的输出
+jar.dependsOn shadowJar
+jar {
+    enabled = false  // 禁用默认 jar 任务
+}
+
+// 确保 buildPlugin 使用 shadowJar
+buildPlugin.dependsOn shadowJar
+
+tasks {
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+    processResources {
+        filteringCharset = "UTF-8"
+    }
+    patchPluginXml {
+        sinceBuild = '211.6693.11'
+        untilBuild = '243.1559.34'
+    }
+}
