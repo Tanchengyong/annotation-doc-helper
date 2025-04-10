@@ -1,0 +1,219 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@AliasFor</code> 是 Spring 框架中的元注解，用于声明注解属性的别名。它允许在同一注解或不同注解之间建立属性映射关系，使注解属性可以相互替代使用，提升注解的灵活性和可维护性。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>属性别名声明：为注解属性定义多个名称，允许在使用时通过任意别名访问属性值。</li>
+        <li>跨注解映射：支持在不同注解之间建立属性关联，实现配置信息的统一管理。</li>
+        <li>简化开发体验：减少重复属性定义，避免因属性命名差异导致的使用复杂性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 元注解 (Meta Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationUtils
+               ↓
+        AnnotatedElementUtils
+               ↓
+        @AliasFor
+               ↓
+        BeanDefinitionReader
+    </code></pre>
+    <p>Spring 在解析注解时，通过 <code>AnnotationUtils</code> 和 <code>AnnotatedElementUtils</code> 识别 <code>@AliasFor</code> 注解，将属性别名信息整合到注解元数据中。这些信息在 <code>BeanDefinitionReader</code> 处理配置类时被用于属性值的正确解析和注入。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.core.annotation.AliasFor;
+        import java.lang.annotation.*;
+
+        @Target(ElementType.TYPE)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface MyConfig {
+            @AliasFor("value")
+            String name() default "";
+
+            @AliasFor("name")
+            String value() default "";
+
+            String description() default "";
+        }
+
+        @MyConfig(name = "testConfig", description = "Example Configuration")
+        public class AppConfig {
+            // 配置类内容
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于注解类型的属性声明。</li>
+        <li>支持在同一注解内或不同注解间建立别名关系。</li>
+        <li>别名属性需具有相同类型和兼容的默认值。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器通过 <code>AnnotationMetadata</code> 读取注解元数据。</li>
+                <li>识别 <code>@AliasFor</code> 注解，建立属性别名映射关系。</li>
+            </ul>
+        </li>
+        <li><strong>别名解析阶段</strong>
+            <ul>
+                <li>在获取属性值时，自动识别所有别名形式。</li>
+                <li>支持通过任意别名名称访问属性值。</li>
+            </ul>
+        </li>
+        <li><strong>属性合并阶段</strong>
+            <ul>
+                <li>如果多个别名属性被同时赋值，以最后出现的属性值为准。</li>
+            </ul>
+        </li>
+        <li><strong>注入阶段</strong>
+            <ul>
+                <li>在依赖注入时，Spring 会自动解析别名属性并注入正确的值。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>简化注解属性</td>
+            <td>为常用属性定义多个别名，提高使用灵活性</td>
+            <td><pre><code>@interface MyAnno {
+    @AliasFor("value")
+    String name();
+
+    @AliasFor("name")
+    String value();
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>统一配置项</td>
+            <td>在不同注解间建立属性关联，统一配置格式</td>
+            <td><pre><code>@interface ConfigA {
+    @AliasFor(annotation = ConfigB.class, attribute = "value")
+    String config();
+}
+
+@interface ConfigB {
+    @AliasFor(annotation = ConfigA.class, attribute = "config")
+    String value();
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>支持多属性别名</td>
+            <td>为同一属性定义多个别名，兼容不同使用习惯</td>
+            <td><pre><code>@interface MultiAlias {
+    @AliasFor("value")
+    String code();
+
+    @AliasFor("code")
+    String value();
+
+    @AliasFor("value")
+    String identifier();
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>目标属性的名称（在同注解内使用时无需指定 annotation 参数）</td>
+        </tr>
+        <tr>
+            <td>annotation</td>
+            <td>Class<? extends Annotation></td>
+            <td>Annotation.class</td>
+            <td>目标属性所在的注解类型（跨注解别名时使用）</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 自定义注解
+        @Target(ElementType.FIELD)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface Property {
+            @AliasFor("key")
+            String name() default "";
+
+            @AliasFor("name")
+            String key() default "";
+
+            String defaultValue() default "";
+        }
+
+        // 使用注解的类
+        public class DatabaseConfig {
+            @Property(key = "db.url")
+            private String dbUrl;
+
+            @Property(name = "db.username")
+            private String dbUsername;
+
+            // getters and setters
+        }
+
+        // 配置解析逻辑
+        public class ConfigLoader {
+            public static void main(String[] args) throws Exception {
+                Field urlField = DatabaseConfig.class.getDeclaredField("dbUrl");
+                Property property = urlField.getAnnotation(Property.class);
+                System.out.println("Property Key: " + property.key());  // 输出: db.url
+                System.out.println("Property Name: " + property.name());  // 输出: db.url
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>通过 <code>@AliasFor</code> 实现 <code>name</code> 和 <code>key</code> 属性互访</li>
+        <li>输出结果：
+            <pre>
+                Property Key: db.url
+                Property Name: db.url
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

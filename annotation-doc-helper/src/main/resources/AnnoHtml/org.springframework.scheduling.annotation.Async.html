@@ -1,0 +1,256 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Async</code> 是 Spring 框架中用于实现异步方法调用的注解。当一个方法被 <code>@Async</code> 注解标注后，Spring 会将该方法的调用从主线程中分离出来，放到一个单独的线程中执行，从而实现异步处理。这样主线程可以继续执行其他任务，而无需等待被标注方法执行完毕。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>提高响应性能：对于一些耗时的操作（如文件读写、网络请求、复杂计算等），使用异步方法可以避免阻塞主线程，使得应用程序能够更快地响应其他请求，提高整体的响应性能。</li>
+        <li>增强并发处理能力：通过异步执行多个任务，可以充分利用系统的多核资源，提高系统的并发处理能力，从而提升系统的吞吐量。</li>
+        <li>优化用户体验：在 Web 应用中，异步处理可以让用户在后台任务执行时继续进行其他操作，而不会感到页面卡顿，提升用户体验。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 异步方法注解 (Spring Asynchronous Method Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Spring Framework
+               ↓
+        @EnableAsync
+               ↓
+        @Async
+               ↓
+        Asynchronous Method Execution
+    </code></pre>
+    <p>在 Spring 体系中，<code>@Async</code> 注解需要与 <code>@EnableAsync</code> 注解配合使用。<code>@EnableAsync</code> 用于在配置类上开启 Spring 的异步方法执行功能，而 <code>@Async</code> 则用于标注具体的异步方法。当 <code>@EnableAsync</code> 开启后，Spring 会自动识别并处理被 <code>@Async</code> 标注的方法，将其异步执行。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.scheduling.annotation.Async;
+        import org.springframework.stereotype.Service;
+
+        @Service
+        public class AsyncService {
+
+            // 定义一个异步方法
+            @Async
+            public void performAsyncTask() {
+                try {
+                    // 模拟一个耗时操作
+                    Thread.sleep(5000);
+                    System.out.println("Async task completed.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于 Spring 管理的 Bean 中的方法上，如 <code>@Service</code>、<code>@Component</code> 等注解标注的类中的方法。</li>
+        <li>异步方法可以有返回值，但返回类型必须是 <code>CompletableFuture</code>、<code>ListenableFuture</code> 或 <code>Future</code> 等表示异步结果的类型。如果方法没有返回值，返回类型应为 <code>void</code>。</li>
+        <li>异步方法不能在同一个类中被调用，因为 Spring 的 AOP 代理机制是基于类的外部调用实现的。如果在同一个类中调用异步方法，不会触发异步执行。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置解析</strong>
+            <ul>
+                <li>当 Spring 容器启动时，会扫描带有 <code>@Configuration</code> 注解的配置类，并解析其中的 <code>@EnableAsync</code> 注解。</li>
+                <li>Spring 会根据 <code>@EnableAsync</code> 的配置，创建一个异步任务执行器（通常是一个线程池），用于管理异步方法的执行。</li>
+            </ul>
+        </li>
+        <li><strong>方法代理</strong>
+            <ul>
+                <li>Spring 会使用 AOP（面向切面编程）技术为被 <code>@Async</code> 注解标注的方法创建代理对象。</li>
+                <li>当调用这些方法时，实际上是调用代理对象的方法，代理对象会将方法的执行委托给异步任务执行器。</li>
+            </ul>
+        </li>
+        <li><strong>异步执行</strong>
+            <ul>
+                <li>异步任务执行器会从线程池中获取一个空闲线程，并将异步方法的执行交给该线程。</li>
+                <li>主线程可以继续执行其他任务，而异步方法会在单独的线程中独立执行。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>邮件发送</td>
+            <td>在用户注册成功后，异步发送欢迎邮件，避免阻塞主线程，让用户可以更快地看到注册成功的页面。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+@Service
+public class EmailService {
+
+    @Async
+    public void sendWelcomeEmail(String email) {
+        // 模拟发送邮件的耗时操作
+        try {
+            Thread.sleep(3000);
+            System.out.println("Welcome email sent to: " + email);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据统计</td>
+            <td>在用户完成某项操作后，异步进行数据统计和分析，不影响用户的正常操作流程。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+@Service
+public class DataStatisticsService {
+
+    @Async
+    public void performStatistics() {
+        // 模拟数据统计的耗时操作
+        try {
+            Thread.sleep(4000);
+            System.out.println("Data statistics completed.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>文件上传处理</td>
+            <td>在用户上传文件后，异步对文件进行处理（如压缩、转码等），让用户可以继续进行其他操作。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+@Service
+public class FileProcessingService {
+
+    @Async
+    public void processUploadedFile(String filePath) {
+        // 模拟文件处理的耗时操作
+        try {
+            Thread.sleep(6000);
+            System.out.println("File processing completed: " + filePath);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定执行异步方法的线程池的名称。如果不指定，Spring 会使用默认的线程池。可以通过配置不同的线程池，并在 <code>@Async</code> 注解中指定线程池名称，来实现对不同异步方法使用不同线程池的管理。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.Bean;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.scheduling.annotation.Async;
+        import org.springframework.scheduling.annotation.EnableAsync;
+        import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+        import org.springframework.stereotype.Service;
+
+        // 配置类
+        @Configuration
+        @EnableAsync
+        public class AppConfig {
+
+            @Bean(name = "myAsyncExecutor")
+            public ThreadPoolTaskExecutor asyncExecutor() {
+                ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+                executor.setCorePoolSize(5);
+                executor.setMaxPoolSize(10);
+                executor.setQueueCapacity(25);
+                executor.setThreadNamePrefix("MyAsync-");
+                executor.initialize();
+                return executor;
+            }
+        }
+
+        // 服务类
+        @Service
+        public class MyService {
+
+            @Async("myAsyncExecutor")
+            public void asyncMethod() {
+                try {
+                    Thread.sleep(3000);
+                    System.out.println("Async method executed in a separate thread.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                MyService myService = context.getBean(MyService.class);
+                myService.asyncMethod();
+                System.out.println("Main thread continues to execute...");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>程序启动后，调用 <code>MyService</code> 类的 <code>asyncMethod</code> 方法，该方法会被异步执行。</li>
+        <li>主线程会继续执行，输出 <code>Main thread continues to execute...</code>。</li>
+        <li>大约 3 秒后，异步方法执行完毕，输出 <code>Async method executed in a separate thread.</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

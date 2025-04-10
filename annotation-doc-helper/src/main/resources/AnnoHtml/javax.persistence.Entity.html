@@ -1,0 +1,293 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Entity</code> 是 Java Persistence API (JPA) 中的一个注解，用于将一个 Java 类映射到数据库中的表。被 <code>@Entity</code> 注解的类被称为实体类，它代表数据库中的一个表，类的每个实例对应表中的一行记录。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>对象 - 关系映射 (ORM)：通过该注解，JPA 可以将 Java 对象和数据库表进行映射，使得开发者可以使用面向对象的方式操作数据库，而无需编写复杂的 SQL 语句。</li>
+        <li>持久化操作：允许 JPA 对实体类的实例进行持久化操作，如保存、更新、删除和查询等。</li>
+        <li>数据模型抽象：将数据库表结构抽象为 Java 类，提高代码的可读性和可维护性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 注解 (JPA Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager
+               ↓
+        PersistenceProvider
+               ↓
+        @Entity
+    </code></pre>
+    <p>当使用 JPA 进行持久化操作时，开发者通过 <code>EntityManager</code> 来管理实体类的生命周期。<code>EntityManager</code> 依赖于 <code>PersistenceProvider</code> 来实现具体的持久化功能。<code>@Entity</code> 注解的类会被 <code>PersistenceProvider</code> 识别，将其与数据库表进行映射，并在进行持久化操作时将实体对象转换为数据库记录。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+        import javax.persistence.Id;
+
+        @Entity
+        public class User {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private int age;
+
+            // 无参构造函数
+            public User() {
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于 Java 类上，被注解的类必须有一个无参构造函数（可以是默认的无参构造函数），以便 JPA 能够实例化该类。</li>
+        <li>实体类必须有一个主键，通常使用 <code>@Id</code> 注解来标识主键字段。</li>
+        <li>实体类的属性通常使用 getter 和 setter 方法进行访问，JPA 通过这些方法来读写属性值。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>在应用启动时，JPA 会扫描所有使用 <code>@Entity</code> 注解的类，解析这些类的元数据，包括类名、属性、注解等信息。</li>
+                <li>根据解析结果，JPA 会将实体类与数据库表进行映射，确定表名、列名、主键等信息。</li>
+            </ul>
+        </li>
+        <li><strong>对象 - 关系映射阶段</strong>
+            <ul>
+                <li>当创建实体类的实例并进行持久化操作时，JPA 会将实体对象的属性值转换为数据库表中的记录。</li>
+                <li>例如，实体类的属性值会被映射到数据库表的列值，对象之间的关系（如一对一、一对多、多对多）会被映射到数据库表之间的关联关系。</li>
+            </ul>
+        </li>
+        <li><strong>持久化操作阶段</strong>
+            <ul>
+                <li>开发者通过 <code>EntityManager</code> 调用持久化方法，如 <code>persist()</code> 保存实体对象、<code>merge()</code> 更新实体对象、<code>remove()</code> 删除实体对象、<code>find()</code> 查询实体对象等。</li>
+                <li><code>EntityManager</code> 会根据对象 - 关系映射信息，生成相应的 SQL 语句并执行，完成对数据库的操作。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据库操作抽象</td>
+            <td>使用 <code>@Entity</code> 注解将数据库表抽象为 Java 实体类，通过操作实体类来实现对数据库的增删改查操作，避免直接编写 SQL 语句。</td>
+            <td><pre><code>@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private double price;
+    // Getters 和 Setters
+}
+
+// 使用 EntityManager 进行操作
+EntityManager entityManager = ...;
+Product product = new Product();
+product.setName("New Product");
+product.setPrice(9.99);
+entityManager.persist(product);</code></pre></td>
+        </tr>
+        <tr>
+            <td>复杂业务逻辑处理</td>
+            <td>在处理复杂的业务逻辑时，使用实体类来封装数据和业务方法，提高代码的可维护性和可扩展性。</td>
+            <td><pre><code>@Entity
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private List&lt;OrderItem&gt; orderItems;
+    // 业务方法
+    public double calculateTotalPrice() {
+        double total = 0;
+        for (OrderItem item : orderItems) {
+            total += item.getPrice() * item.getQuantity();
+        }
+        return total;
+    }
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据模型迁移</td>
+            <td>当需要更换数据库或调整数据库表结构时，只需要修改实体类的注解和属性，而不需要大量修改 SQL 语句。</td>
+            <td><pre><code>@Entity
+@Table(name = "new_table_name")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    // 其他属性和方法
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>类的非限定名</td>
+            <td>指定实体的名称，用于在 JPQL (Java Persistence Query Language) 中引用该实体。如果不指定，默认使用类的非限定名。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+        import javax.persistence.Id;
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        @Entity
+        public class User {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private int age;
+
+            // 无参构造函数
+            public User() {
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                // 创建 EntityManagerFactory
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                // 创建 EntityManager
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    // 开始事务
+                    em.getTransaction().begin();
+
+                    // 创建一个新的 User 对象
+                    User user = new User();
+                    user.setName("John Doe");
+                    user.setAge(30);
+
+                    // 保存 User 对象到数据库
+                    em.persist(user);
+
+                    // 提交事务
+                    em.getTransaction().commit();
+
+                    // 查询 User 对象
+                    User retrievedUser = em.find(User.class, user.getId());
+                    System.out.println("Retrieved user: " + retrievedUser.getName());
+                } catch (Exception e) {
+                    // 回滚事务
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    // 关闭 EntityManager
+                    em.close();
+                    // 关闭 EntityManagerFactory
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>程序会创建一个新的 <code>User</code> 对象，并将其保存到数据库中。</li>
+        <li>然后从数据库中查询该 <code>User</code> 对象，并打印其名称。</li>
+        <li>整个过程通过 JPA 完成，开发者无需编写复杂的 SQL 语句。</li>
+    </ul>
+</div>
+
+</body>
+</html>

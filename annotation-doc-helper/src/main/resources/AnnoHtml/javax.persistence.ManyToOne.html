@@ -1,0 +1,331 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.ManyToOne</code> 是 JPA（Java Persistence API）中的注解，用于定义实体之间多对一的关联关系。在多对一关系中，多个实体实例可以关联到同一个目标实体实例，例如多个订单可以关联到同一个客户。该注解使得 JPA 能够在代码层面清晰地表达这种关系，并在数据库操作中正确处理关联数据。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>关系映射：准确地将实体间的多对一关系映射到数据库表结构，方便进行数据的持久化和查询操作。</li>
+        <li>简化开发：避免手动编写复杂的 SQL 语句来处理关联关系，减少开发工作量。</li>
+        <li>提高代码可读性：通过注解清晰展示实体间的关联关系，使代码更易理解和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体关联映射注解 (Entity Association Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @ManyToOne
+               ↓
+        Database Foreign Key Relationship
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责管理实体类的生命周期和与数据库的交互。<code>@ManyToOne</code> 注解为 <code>Entity Manager</code> 提供了实体间多对一关系的映射信息，<code>Entity Manager</code> 会根据这些信息在数据库表中使用外键来维护实体间的关联。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class Order {
+            @Id
+            private Long id;
+            private double amount;
+
+            @ManyToOne
+            @JoinColumn(name = "customer_id")
+            private Customer customer;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public double getAmount() {
+                return amount;
+            }
+
+            public void setAmount(double amount) {
+                this.amount = amount;
+            }
+
+            public Customer getCustomer() {
+                return customer;
+            }
+
+            public void setCustomer(Customer customer) {
+                this.customer = customer;
+            }
+        }
+
+        @Entity
+        public class Customer {
+            @Id
+            private Long id;
+            private String name;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>作用于实体类的属性上，该属性通常引用另一个实体类，且当前实体类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>可以通过 <code>@JoinColumn</code> 注解指定外键列的名称，若不指定，JPA 会使用默认的命名规则。</li>
+        <li>在双向关联中，多对一的反向是一对多，需要在目标实体类中使用 <code>@OneToMany</code> 注解来定义反向关联。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，扫描带有 <code>@Entity</code> 和 <code>@ManyToOne</code> 注解的实体类。</li>
+                <li>解析 <code>@ManyToOne</code> 注解及其相关属性（如 <code>@JoinColumn</code>），确定实体间的多对一关系和外键列信息，并将这些信息存储在 JPA 元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，会根据元数据中的关系信息，处理外键列的值。</li>
+                <li>例如，在保存一个 <code>Order</code> 实体时，会将关联的 <code>Customer</code> 实体的主键值存储在 <code>Order</code> 表的外键列中；在查询 <code>Order</code> 实体时，会根据外键列的值关联查询对应的 <code>Customer</code> 实体。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>订单与客户的关系</td>
+            <td>多个订单可以属于同一个客户，使用 <code>@ManyToOne</code> 注解来映射这种关系。</td>
+            <td><pre><code>@Entity
+public class Order {
+    // ...
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+    // ...
+}
+
+@Entity
+public class Customer {
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>文章与作者的关系</td>
+            <td>多篇文章可以由同一个作者撰写，通过该注解实现这种多对一关联。</td>
+            <td><pre><code>@Entity
+public class Article {
+    // ...
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private Author author;
+    // ...
+}
+
+@Entity
+public class Author {
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>商品与分类的关系</td>
+            <td>多个商品可以属于同一个分类，使用 <code>@ManyToOne</code> 注解处理这种关联。</td>
+            <td><pre><code>@Entity
+public class Product {
+    // ...
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+    // ...
+}
+
+@Entity
+public class Category {
+    // ...
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>targetEntity</td>
+            <td>Class</td>
+            <td>根据属性的类型推断</td>
+            <td>指定关联的目标实体类。</td>
+        </tr>
+        <tr>
+            <td>cascade</td>
+            <td>CascadeType[]</td>
+            <td>{} (空数组)</td>
+            <td>指定级联操作类型，如级联保存、更新、删除等。</td>
+        </tr>
+        <tr>
+            <td>fetch</td>
+            <td>FetchType</td>
+            <td>FetchType.EAGER</td>
+            <td>指定关联实体的获取方式，有 <code>LAZY</code>（懒加载）和 <code>EAGER</code>（立即加载）两种。</td>
+        </tr>
+        <tr>
+            <td>optional</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定关联是否可选，若为 <code>false</code>，表示外键列不能为空。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class Comment {
+            @Id
+            private Long id;
+            private String content;
+
+            @ManyToOne
+            @JoinColumn(name = "post_id")
+            private Post post;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getContent() {
+                return content;
+            }
+
+            public void setContent(String content) {
+                this.content = content;
+            }
+
+            public Post getPost() {
+                return post;
+            }
+
+            public void setPost(Post post) {
+                this.post = post;
+            }
+        }
+
+        @Entity
+        public class Post {
+            @Id
+            private Long id;
+            private String title;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            public void setTitle(String title) {
+                this.title = title;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Post post = new Post();
+                post.setId(1L);
+                post.setTitle("Sample Post");
+
+                Comment comment = new Comment();
+                comment.setId(1L);
+                comment.setContent("Great post!");
+                comment.setPost(post);
+
+                em.getTransaction().begin();
+                em.persist(post);
+                em.persist(comment);
+                em.getTransaction().commit();
+
+                Comment retrievedComment = em.find(Comment.class, 1L);
+                System.out.println("Comment Content: " + retrievedComment.getContent());
+                System.out.println("Related Post Title: " + retrievedComment.getPost().getTitle());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@ManyToOne</code> 注解和 <code>@JoinColumn</code> 注解的配置，在数据库中创建 <code>Comment</code> 和 <code>Post</code> 表，并在 <code>Comment</code> 表中设置外键列 <code>post_id</code>，插入相应的记录。</li>
+        <li>通过查询 <code>Comment</code> 实体，可以获取与之关联的 <code>Post</code> 实体信息，并打印出来。</li>
+    </ul>
+</div>
+
+</body>
+</html>

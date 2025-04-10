@@ -1,0 +1,256 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PatchMapping</code> 是 Spring 框架在 4.3 版本引入的注解，它是 <code>@RequestMapping(method = RequestMethod.PATCH)</code> 的快捷方式，用于将 HTTP PATCH 请求映射到特定的处理方法上。HTTP PATCH 请求用于对资源进行部分更新，即客户端只需提供需要更新的字段，而不是像 PUT 请求那样提供整个资源的完整数据。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>简化代码：避免每次都显式指定 <code>method = RequestMethod.PATCH</code>，使代码更加简洁易读。</li>
+        <li>部分更新资源：允许客户端只发送需要更新的资源部分，减少数据传输量，提高效率。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerMapping
+    </code></pre>
+    <p>和其他 Spring Web 注解一样，依赖于 Spring 的 <code>DispatcherServlet</code> 作为前端控制器，通过 <code>HandlerMapping</code> 查找匹配的处理器，由 <code>RequestMappingHandlerMapping</code> 处理注解的映射。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 处理 PATCH 请求部分更新用户信息
+            @PatchMapping("/users/{id}")
+            public User patchUser(@PathVariable("id") Long id, @RequestBody Map&lt;String, Object&gt; updates) {
+                return userService.patchUser(id, updates);
+            }
+
+            // 处理 PATCH 请求部分更新商品信息
+            @PatchMapping("/products/{productId}")
+            public Product patchProduct(@PathVariable("productId") Long productId, @RequestBody Product partialProduct) {
+                return productService.patchProduct(productId, partialProduct);
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能应用于控制器类的方法上，不能用于类上。</li>
+        <li>可与类上的 <code>@RequestMapping</code> 注解结合使用，共同确定请求的完整路径。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>RequestMappingHandlerMapping</code> 扫描所有带有 <code>@PatchMapping</code> 注解的方法。</li>
+                <li>解析注解中的请求路径等属性，将其封装成映射信息存储在内部的映射表中。</li>
+            </ul>
+        </li>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>当客户端发送 HTTP PATCH 请求时，<code>DispatcherServlet</code> 接收请求并调用 <code>RequestMappingHandlerMapping</code>。</li>
+                <li><code>RequestMappingHandlerMapping</code> 根据请求的 URL 在映射表中查找匹配的处理器方法。</li>
+            </ul>
+        </li>
+        <li><strong>方法调用阶段</strong>
+            <ul>
+                <li>若找到匹配的处理器方法，<code>DispatcherServlet</code> 调用该方法，并将请求的相关信息传递给方法的参数。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>更新部分用户信息</td>
+            <td>使用 <code>@PatchMapping</code> 处理更新用户部分信息的请求，如只更新用户的邮箱或密码。</td>
+            <td><pre><code>@PatchMapping("/users/{id}") public User updateUserEmail(@PathVariable("id") Long id, @RequestBody Map&lt;String, String&gt; emailUpdate) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>部分更新商品属性</td>
+            <td>允许客户端只更新商品的某些属性，如价格、库存等。</td>
+            <td><pre><code>@PatchMapping("/products/{productId}") public Product updateProductPrice(@PathVariable("productId") Long productId, @RequestBody Map&lt;String, Double&gt; priceUpdate) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求的 URL 路径，可以是一个或多个路径。</td>
+        </tr>
+        <tr>
+            <td>path</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>和 <code>value</code> 作用相同，指定请求的 URL 路径。</td>
+        </tr>
+        <tr>
+            <td>params</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求必须包含的请求参数及其值，例如 <code>"param1=value1"</code>。</td>
+        </tr>
+        <tr>
+            <td>headers</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求必须包含的请求头及其值，例如 <code>"X-Requested-With=XMLHttpRequest"</code>。</td>
+        </tr>
+        <tr>
+            <td>consumes</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求的媒体类型，例如 <code>"application/json"</code>。</td>
+        </tr>
+        <tr>
+            <td>produces</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定响应的媒体类型，例如 <code>"application/json;charset=UTF-8"</code>。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+        import java.util.HashMap;
+        import java.util.Map;
+
+        // 定义用户类
+        class User {
+            private Long id;
+            private String name;
+            private String email;
+
+            public User() {}
+
+            public User(Long id, String name, String email) {
+                this.id = id;
+                this.name = name;
+                this.email = email;
+            }
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getEmail() {
+                return email;
+            }
+
+            public void setEmail(String email) {
+                this.email = email;
+            }
+
+            // 部分更新方法
+            public void patch(Map&lt;String, Object&gt; updates) {
+                if (updates.containsKey("name")) {
+                    this.name = (String) updates.get("name");
+                }
+                if (updates.containsKey("email")) {
+                    this.email = (String) updates.get("email");
+                }
+            }
+        }
+
+        // 模拟用户服务类
+        class UserService {
+            private Map&lt;Long, User&gt; users = new HashMap&lt;&gt;();
+
+            public UserService() {
+                users.put(1L, new User(1L, "Alice", "alice@example.com"));
+            }
+
+            public User patchUser(Long id, Map&lt;String, Object&gt; updates) {
+                User user = users.get(id);
+                if (user != null) {
+                    user.patch(updates);
+                }
+                return user;
+            }
+        }
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            private UserService userService = new UserService();
+
+            // 处理 PATCH 请求部分更新用户信息
+            @PatchMapping("/users/{id}")
+            public User patchUser(@PathVariable("id") Long id, @RequestBody Map&lt;String, Object&gt; updates) {
+                return userService.patchUser(id, updates);
+            }
+        }
+
+        // 验证代码
+        public class PatchMappingTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>PATCH /api/users/{id}</code> 请求并携带需要更新的字段（如 <code>{"email": "newemail@example.com"}</code>）时，会部分更新指定 ID 用户的信息，并返回更新后的用户对象。</li>
+    </ul>
+</div>
+
+</body>
+</html>

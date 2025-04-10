@@ -1,0 +1,217 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PropertySources</code> 是 Spring 框架中的组合注解，用于在单个配置类中声明多个 <code>@PropertySource</code> 注解。它允许一次性加载多个外部属性文件（如 `.properties` 或 `.yml` 文件），将这些配置信息整合到 Spring 环境中，供应用程序使用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>批量加载配置：在一个配置类中集中管理多个属性文件，避免分散的 <code>@PropertySource</code> 注解。</li>
+        <li>灵活组合配置：支持不同属性文件的差异化配置（如环境特定配置、模块配置等），提升配置管理的灵活性。</li>
+        <li>兼容多场景需求：适用于需要同时加载多个配置文件的复杂场景，如多模块应用、多环境部署等。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 元注解 (Meta Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationConfigApplicationContext
+               ↓
+        PropertySourcesPlaceholderConfigurer
+               ↓
+        @PropertySources
+               ↓
+        @PropertySource
+    </code></pre>
+    <p>当使用 <code>AnnotationConfigApplicationContext</code> 启动 Spring 容器时，<code>PropertySourcesPlaceholderConfigurer</code> 会解析带有 <code>@PropertySources</code> 注解的配置类。该注解内部包含多个 <code>@PropertySource</code> 实例，每个实例对应一个属性文件的加载操作，最终将所有属性文件的配置合并到 Spring 环境中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.context.annotation.PropertySources;
+        import org.springframework.context.annotation.PropertySource;
+
+        @Configuration
+        @PropertySources({
+            @PropertySource("classpath:application.properties"),
+            @PropertySource("classpath:db.properties"),
+            @PropertySource(value = "file:/config/thirdparty.properties", ignoreResourceNotFound = true)
+        })
+        public class AppConfig {
+            // 配置类其他内容
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解必须作用于配置类（需标记 <code>@Configuration</code>）。</li>
+        <li>内部可包含多个 <code>@PropertySource</code> 注解，每个注解独立配置属性文件的路径和参数。</li>
+        <li>支持混合使用类路径（<code>classpath:</code>）和文件系统路径（<code>file:</code>）的属性文件。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>AnnotationConfigApplicationContext</code> 检测到配置类上的 <code>@PropertySources</code> 注解。</li>
+                <li>解析该注解，提取内部所有 <code>@PropertySource</code> 实例。</li>
+            </ul>
+        </li>
+        <li><strong>文件加载阶段</strong>
+            <ul>
+                <li>遍历每个 <code>@PropertySource</code>，根据其配置加载对应的属性文件。</li>
+                <li>支持自定义 <code>PropertySourceFactory</code> 处理特殊格式文件。</li>
+            </ul>
+        </li>
+        <li><strong>属性合并阶段</strong>
+            <ul>
+                <li>将所有属性文件的内容按顺序合并到 Spring 环境的 <code>PropertySources</code> 集合中。</li>
+                <li>同名属性以最后加载的文件为准。</li>
+            </ul>
+        </li>
+        <li><strong>属性注入阶段</strong>
+            <ul>
+                <li>通过 <code>@Value</code> 注解或 <code>Environment</code> 对象访问合并后的属性值。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>多模块配置</td>
+            <td>为每个模块单独维护配置文件，通过 <code>@PropertySources</code> 统一加载</td>
+            <td><pre><code>@Configuration
+@PropertySources({
+    @PropertySource("classpath:module1.properties"),
+    @PropertySource("classpath:module2.properties")
+})
+public class AppConfig {}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多环境部署</td>
+            <td>根据激活的 Spring Profile 加载对应配置</td>
+            <td><pre><code>@Configuration
+@PropertySources({
+    @PropertySource("classpath:application.properties"),
+    @PropertySource(value = "classpath:application-${spring.profiles.active}.properties", ignoreResourceNotFound = true)
+})
+public class AppConfig {}</code></pre></td>
+        </tr>
+        <tr>
+            <td>混合路径加载</td>
+            <td>同时加载类路径和文件系统中的配置文件</td>
+            <td><pre><code>@Configuration
+@PropertySources({
+    @PropertySource("classpath:default.properties"),
+    @PropertySource("file:/etc/custom.properties")
+})
+public class AppConfig {}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>PropertySource[]</td>
+            <td>{}（空数组）</td>
+            <td>包含多个 <code>@PropertySource</code> 注解的数组，每个注解独立配置属性文件</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        <!-- application.properties -->
+        app.name=MultiConfigApp
+        app.version=2.0
+
+        <!-- db.properties -->
+        db.url=jdbc:mysql://localhost:3306/test
+        db.username=root
+
+        // AppConfig.java
+        @Configuration
+        @PropertySources({
+            @PropertySource("classpath:application.properties"),
+            @PropertySource("classpath:db.properties")
+        })
+        public class AppConfig {
+            @Value("${app.name}")
+            private String appName;
+
+            @Value("${db.url}")
+            private String dbUrl;
+
+            @Bean
+            public AppInfo appInfo() {
+                return new AppInfo(appName, dbUrl);
+            }
+        }
+
+        // AppInfo.java
+        public class AppInfo {
+            private final String appName;
+            private final String dbUrl;
+
+            public AppInfo(String appName, String dbUrl) {
+                this.appName = appName;
+                this.dbUrl = dbUrl;
+            }
+
+            // getters
+        }
+
+        // Main.java
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                AppInfo info = context.getBean(AppInfo.class);
+                System.out.println("App: " + info.getAppName());
+                System.out.println("DB: " + info.getDbUrl());
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>同时加载 <code>application.properties</code> 和 <code>db.properties</code></li>
+        <li>输出结果：
+            <pre>
+                App: MultiConfigApp
+                DB: jdbc:mysql://localhost:3306/test
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

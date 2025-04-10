@@ -1,0 +1,253 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@DeclareParents</code> 是 AspectJ 框架里用于类型间声明（inter - type declaration）的注解。它允许在不修改原有类代码的基础上，为一组目标类添加新的接口和相应的实现，从而在运行时动态地扩展这些类的功能。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>功能扩展：为现有类添加新的功能接口和实现，无需修改原有类的代码结构，符合开闭原则。</li>
+        <li>代码复用：可以将一些通用的功能封装在一个接口及其实现类中，通过该注解应用到多个不同的类上，提高代码的复用性。</li>
+        <li>模块化设计：有助于将不同的功能模块进行分离，使得代码结构更加清晰，便于维护和扩展。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>AspectJ 类型间声明注解 (AspectJ Inter - type Declaration Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AspectJ Framework
+               ↓
+        @Aspect
+               ↓
+        @DeclareParents
+               ↓
+        Target Classes
+    </code></pre>
+    <p>在 AspectJ 体系中，<code>@DeclareParents</code> 注解需与 <code>@Aspect</code> 注解配合使用，在切面类中定义类型间声明。它通过指定的类型匹配模式，将新的接口和实现添加到目标类上。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.DeclareParents;
+
+        // 定义一个新的接口
+        interface Loggable {
+            void log();
+        }
+
+        // 接口的实现类
+        class LoggableImpl implements Loggable {
+            @Override
+            public void log() {
+                System.out.println("Logging operation...");
+            }
+        }
+
+        @Aspect
+        public class LoggableAspect {
+            // 为 com.example.service 包下的所有类添加 Loggable 接口
+            @DeclareParents(value = "com.example.service.*+", defaultImpl = LoggableImpl.class)
+            public static Loggable mixin;
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于切面类中的静态字段上，字段的类型必须是要添加的接口类型。</li>
+        <li><code>value</code> 属性指定目标类的匹配模式，可以使用 AspectJ 的类型匹配语法，如 <code>com.example.service.*+</code> 表示 <code>com.example.service</code> 包下的所有类及其子类。</li>
+        <li><code>defaultImpl</code> 属性指定接口的默认实现类，当目标类没有自己实现该接口时，将使用这个默认实现。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>编译时织入</strong>
+            <ul>
+                <li>在编译阶段，AspectJ 编译器会对带有 <code>@Aspect</code> 注解的类进行解析，识别其中的 <code>@DeclareParents</code> 注解。</li>
+                <li>根据 <code>value</code> 属性指定的匹配模式，编译器会找到目标类，并在其字节码中插入实现新接口的代码，同时关联默认实现类。</li>
+            </ul>
+        </li>
+        <li><strong>运行时表现</strong>
+            <ul>
+                <li>在运行时，当目标类被实例化后，它就具备了新接口的功能。可以将目标类的实例强制转换为新接口类型，调用接口中的方法。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>添加审计功能</td>
+            <td>为现有的业务类添加审计接口和实现，记录操作信息。</td>
+            <td><pre><code>
+// 审计接口
+interface Auditable {
+    void audit();
+}
+
+// 审计实现类
+class AuditableImpl implements Auditable {
+    @Override
+    public void audit() {
+        System.out.println("Auditing operation...");
+    }
+}
+
+@Aspect
+public class AuditAspect {
+    @DeclareParents(value = "com.example.business.*+", defaultImpl = AuditableImpl.class)
+    public static Auditable auditMixin;
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>添加缓存功能</td>
+            <td>为数据访问类添加缓存接口和实现，提高数据访问效率。</td>
+            <td><pre><code>
+// 缓存接口
+interface Cacheable {
+    void cacheData();
+}
+
+// 缓存实现类
+class CacheableImpl implements Cacheable {
+    @Override
+    public void cacheData() {
+        System.out.println("Caching data...");
+    }
+}
+
+@Aspect
+public class CacheAspect {
+    @DeclareParents(value = "com.example.dao.*+", defaultImpl = CacheableImpl.class)
+    public static Cacheable cacheMixin;
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>添加日志记录功能</td>
+            <td>为服务类添加日志记录接口和实现，方便调试和监控。</td>
+            <td><pre><code>
+// 日志接口
+interface Logging {
+    void logInfo();
+}
+
+// 日志实现类
+class LoggingImpl implements Logging {
+    @Override
+    public void logInfo() {
+        System.out.println("Logging service information...");
+    }
+}
+
+@Aspect
+public class LoggingAspect {
+    @DeclareParents(value = "com.example.service.*+", defaultImpl = LoggingImpl.class)
+    public static Logging loggingMixin;
+}
+</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>无</td>
+            <td>指定目标类的匹配模式，使用 AspectJ 的类型匹配语法，用于确定哪些类将添加新的接口。</td>
+        </tr>
+        <tr>
+            <td>defaultImpl</td>
+            <td>Class</td>
+            <td>无</td>
+            <td>指定新接口的默认实现类，当目标类没有自己实现该接口时，将使用这个默认实现。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 定义一个新的接口
+        interface Printable {
+            void print();
+        }
+
+        // 接口的实现类
+        class PrintableImpl implements Printable {
+            @Override
+            public void print() {
+                System.out.println("Printing content...");
+            }
+        }
+
+        // 切面类
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.DeclareParents;
+
+        @Aspect
+        public class PrintableAspect {
+            @DeclareParents(value = "com.example.model.*+", defaultImpl = PrintableImpl.class)
+            public static Printable printableMixin;
+        }
+
+        // 目标类
+        package com.example.model;
+
+        public class Product {
+            private String name;
+
+            public Product(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                Product product = new Product("Sample Product");
+                Printable printableProduct = (Printable) product;
+                printableProduct.print();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>在运行时，<code>Product</code> 类实例可以被强制转换为 <code>Printable</code> 接口类型。</li>
+        <li>调用 <code>print</code> 方法时，会执行 <code>PrintableImpl</code> 类中的 <code>print</code> 方法，输出 <code>Printing content...</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

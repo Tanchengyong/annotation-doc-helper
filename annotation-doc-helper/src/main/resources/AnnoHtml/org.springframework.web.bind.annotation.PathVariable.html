@@ -1,0 +1,213 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PathVariable</code> 是 Spring 框架中的注解，用于将请求 URL 中的模板变量映射到控制器方法的参数上。在 RESTful 风格的 Web 服务中，URL 通常包含动态部分，<code>@PathVariable</code> 能够方便地提取这些动态部分的值并传递给方法参数。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>参数绑定：将 URL 中的路径变量绑定到控制器方法的参数，实现动态参数传递。</li>
+        <li>构建 RESTful 接口：有助于创建符合 RESTful 规范的 API，使 URL 更加简洁和语义化。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerAdapter
+    </code></pre>
+    <p>Spring 的 <code>DispatcherServlet</code> 接收请求后，通过 <code>HandlerMapping</code> 找到匹配的处理器方法。<code>RequestMappingHandlerAdapter</code> 在调用处理器方法时，使用 <code>@PathVariable</code> 注解将 URL 中的路径变量绑定到方法参数。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 处理获取单个用户信息的请求
+            @GetMapping("/users/{userId}")
+            public User getUser(@PathVariable("userId") Long id) {
+                return userService.getUserById(id);
+            }
+
+            // 处理删除指定订单的请求
+            @DeleteMapping("/orders/{orderId}")
+            public String deleteOrder(@PathVariable("orderId") Long orderId) {
+                orderService.deleteOrder(orderId);
+                return "Order with ID " + orderId + " has been deleted.";
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能用于控制器方法的参数上。</li>
+        <li>注解中的 value 属性指定 URL 路径中的变量名，若变量名与方法参数名一致，value 属性可省略。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>客户端发送请求，<code>DispatcherServlet</code> 接收请求后，<code>HandlerMapping</code> 根据请求 URL 找到匹配的控制器方法。</li>
+                <li>解析请求 URL 中的路径变量，将其与控制器方法上 <code>@RequestMapping</code> 注解中的路径模板进行匹配。</li>
+            </ul>
+        </li>
+        <li><strong>参数绑定阶段</strong>
+            <ul>
+                <li><code>RequestMappingHandlerAdapter</code> 负责调用控制器方法，在调用时，根据 <code>@PathVariable</code> 注解将路径变量的值绑定到方法的对应参数上。</li>
+                <li>若路径变量与方法参数类型不匹配，Spring 会尝试进行类型转换。</li>
+            </ul>
+        </li>
+        <li><strong>方法执行阶段</strong>
+            <ul>
+                <li>绑定好参数后，调用控制器方法，方法使用绑定的参数执行相应的业务逻辑。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>获取单个资源</td>
+            <td>使用 <code>@PathVariable</code> 提取资源的唯一标识，根据标识获取单个资源。</td>
+            <td><pre><code>@GetMapping("/books/{bookId}") public Book getBook(@PathVariable("bookId") Long bookId) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>更新或删除资源</td>
+            <td>通过 <code>@PathVariable</code> 传递资源的标识，对指定资源进行更新或删除操作。</td>
+            <td><pre><code>@PutMapping("/articles/{articleId}") public Article updateArticle(@PathVariable("articleId") Long articleId, @RequestBody Article article) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多级资源操作</td>
+            <td>在多级资源的 URL 中使用 <code>@PathVariable</code> 提取不同层级的资源标识。</td>
+            <td><pre><code>@GetMapping("/customers/{customerId}/orders/{orderId}") public Order getCustomerOrder(@PathVariable("customerId") Long customerId, @PathVariable("orderId") Long orderId) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>指定 URL 路径中的变量名，用于将路径变量绑定到方法参数。若变量名与方法参数名一致，此参数可省略。</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>与 value 作用相同，是 value 的别名。</td>
+        </tr>
+        <tr>
+            <td>required</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定该路径变量是否为必需项。若设置为 false，当路径中缺少该变量时，方法参数将被赋值为 null。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+
+        // 定义用户类
+        class User {
+            private Long id;
+            private String name;
+
+            public User() {}
+
+            public User(Long id, String name) {
+                this.id = id;
+                this.name = name;
+            }
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
+
+        // 模拟用户服务类
+        class UserService {
+            public User getUserById(Long id) {
+                // 模拟根据 ID 获取用户信息
+                return new User(id, "User" + id);
+            }
+        }
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            private UserService userService = new UserService();
+
+            // 处理获取单个用户信息的请求
+            @GetMapping("/users/{userId}")
+            public User getUser(@PathVariable("userId") Long id) {
+                return userService.getUserById(id);
+            }
+        }
+
+        // 验证代码
+        public class PathVariableTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>GET /api/users/1</code> 请求时，<code>@PathVariable</code> 会将 URL 中的 <code>1</code> 绑定到 <code>getUser</code> 方法的 <code>id</code> 参数上，方法根据该 ID 获取用户信息并返回。</li>
+    </ul>
+</div>
+
+</body>
+</html>

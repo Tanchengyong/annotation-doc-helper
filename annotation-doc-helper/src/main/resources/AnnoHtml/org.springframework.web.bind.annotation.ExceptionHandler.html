@@ -1,0 +1,267 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ExceptionHandler</code> 是 Spring 框架中的注解，用于在控制器类或使用 <code>@ControllerAdvice</code> 、 <code>@RestControllerAdvice</code> 注解的类中定义异常处理方法。它可以捕获并处理特定类型的异常，将异常转换为合适的响应返回给客户端，避免异常直接暴露给用户。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>异常捕获与处理：在控制器层捕获特定类型的异常，并进行相应的处理，避免异常在系统中扩散。</li>
+        <li>统一响应格式：将异常信息转换为统一的响应格式，方便客户端处理和展示错误信息。</li>
+        <li>提高用户体验：避免将系统内部的异常信息直接返回给用户，而是返回友好的错误提示。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerExceptionResolver
+               ↓
+        @ExceptionHandler
+    </code></pre>
+    <p>当客户端请求到达 <code>DispatcherServlet</code> 后，如果在控制器方法执行过程中抛出异常，<code>DispatcherServlet</code> 会调用 <code>HandlerExceptionResolver</code> 来处理异常。<code>HandlerExceptionResolver</code> 会查找使用 <code>@ExceptionHandler</code> 注解的方法，并根据异常类型调用相应的处理方法。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.http.HttpStatus;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.ExceptionHandler;
+        import org.springframework.web.bind.annotation.RestController;
+
+        @RestController
+        public class MyController {
+
+            // 处理自定义业务异常
+            @ExceptionHandler(BusinessException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleBusinessException(BusinessException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            // 处理空指针异常
+            @ExceptionHandler(NullPointerException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleNullPointerException(NullPointerException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "A null pointer error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            // 处理其他未指定的异常
+            @ExceptionHandler(Exception.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleGeneralException(Exception ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // 自定义业务异常类
+        class BusinessException extends RuntimeException {
+            public BusinessException(String message) {
+                super(message);
+            }
+        }
+
+        // 错误响应类
+        class ErrorResponse {
+            private int status;
+            private String message;
+
+            public ErrorResponse(int status, String message) {
+                this.status = status;
+                this.message = message;
+            }
+
+            public int getStatus() {
+                return status;
+            }
+
+            public void setStatus(int status) {
+                this.status = status;
+            }
+
+            public String getMessage() {
+                return message;
+            }
+
+            public void setMessage(String message) {
+                this.message = message;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于方法上，通常在控制器类或使用 <code>@ControllerAdvice</code> 、 <code>@RestControllerAdvice</code> 注解的类中使用。</li>
+        <li>异常处理方法的参数通常为要捕获的异常类型，返回值可以是任意类型，常见的是返回 <code>ResponseEntity</code> 来封装响应信息。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>异常抛出阶段</strong>
+            <ul>
+                <li>在控制器方法执行过程中，如果发生异常，该异常会被抛出。</li>
+            </ul>
+        </li>
+        <li><strong>异常捕获阶段</strong>
+            <ul>
+                <li><code>DispatcherServlet</code> 捕获到异常后，会调用 <code>HandlerExceptionResolver</code> 来处理异常。</li>
+                <li><code>HandlerExceptionResolver</code> 会查找所有使用 <code>@ExceptionHandler</code> 注解的方法，并根据异常的类型进行匹配。</li>
+            </ul>
+        </li>
+        <li><strong>异常处理阶段</strong>
+            <ul>
+                <li>找到匹配的 <code>@ExceptionHandler</code> 方法后，<code>HandlerExceptionResolver</code> 会调用该方法，并将异常对象作为参数传递给它。</li>
+                <li>异常处理方法根据异常信息生成合适的响应对象，例如 <code>ErrorResponse</code> ，并将其返回。</li>
+            </ul>
+        </li>
+        <li><strong>响应返回阶段</strong>
+            <ul>
+                <li><code>HandlerExceptionResolver</code> 将异常处理方法返回的响应对象转换为 HTTP 响应，发送给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>自定义业务异常处理</td>
+            <td>针对业务逻辑中自定义的异常类型，使用 <code>@ExceptionHandler</code> 注解的方法进行处理，返回特定的错误信息。</td>
+            <td><pre><code>@ExceptionHandler(CustomBusinessException.class)
+public ResponseEntity&lt;ErrorResponse&gt; handleCustomBusinessException(CustomBusinessException ex) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>常见系统异常处理</td>
+            <td>处理常见的系统异常，如 <code>NullPointerException</code> 、 <code>IllegalArgumentException</code> 等，返回统一的错误提示。</td>
+            <td><pre><code>@ExceptionHandler(NullPointerException.class)
+public ResponseEntity&lt;ErrorResponse&gt; handleNullPointerException(NullPointerException ex) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>全局异常兜底处理</td>
+            <td>使用 <code>@ExceptionHandler(Exception.class)</code> 捕获所有未被其他处理方法捕获的异常，提供一个统一的错误响应。</td>
+            <td><pre><code>@ExceptionHandler(Exception.class)
+public ResponseEntity&lt;ErrorResponse&gt; handleGeneralException(Exception ex) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定该异常处理方法要捕获的异常类型。如果不指定，Spring 会根据方法的参数类型来确定要捕获的异常。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.http.HttpStatus;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.ExceptionHandler;
+        import org.springframework.web.bind.annotation.RestController;
+
+        @RestController
+        public class MyController {
+
+            // 处理自定义业务异常
+            @ExceptionHandler(BusinessException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleBusinessException(BusinessException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            // 处理空指针异常
+            @ExceptionHandler(NullPointerException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleNullPointerException(NullPointerException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "A null pointer error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            // 处理其他未指定的异常
+            @ExceptionHandler(Exception.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleGeneralException(Exception ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // 自定义业务异常类
+        class BusinessException extends RuntimeException {
+            public BusinessException(String message) {
+                super(message);
+            }
+        }
+
+        // 错误响应类
+        class ErrorResponse {
+            private int status;
+            private String message;
+
+            public ErrorResponse(int status, String message) {
+                this.status = status;
+                this.message = message;
+            }
+
+            public int getStatus() {
+                return status;
+            }
+
+            public void setStatus(int status) {
+                this.status = status;
+            }
+
+            public String getMessage() {
+                return message;
+            }
+
+            public void setMessage(String message) {
+                this.message = message;
+            }
+        }
+
+        // 验证代码
+        public class ExceptionHandlerTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当控制器方法抛出 <code>BusinessException</code> 异常时，<code>handleBusinessException</code> 方法会被调用，返回一个包含错误状态码和错误信息的 <code>ErrorResponse</code> 对象给客户端。</li>
+        <li>当抛出 <code>NullPointerException</code> 异常时，<code>handleNullPointerException</code> 方法会处理该异常并返回相应的错误响应。</li>
+        <li>对于其他未被特定处理方法捕获的异常，<code>handleGeneralException</code> 方法会进行兜底处理，返回一个通用的错误响应。</li>
+    </ul>
+</div>
+
+</body>
+</html>

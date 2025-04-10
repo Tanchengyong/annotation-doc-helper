@@ -1,0 +1,313 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Repository</code> 是 Spring 框架中的一个注解，它是 <code>@Component</code> 的一种特殊形式，用于标记一个类为数据访问层（DAO，Data Access Object）组件。该注解表明这个类的主要职责是与数据库或其他持久化存储进行交互，执行数据的增删改查操作。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据访问封装：将与数据库的交互逻辑封装在标记的类中，提高代码的可维护性和可测试性。</li>
+        <li>组件扫描：Spring 自动扫描带有 <code>@Repository</code> 注解的类，将其注册为 Bean 并管理其生命周期。</li>
+        <li>异常转换：Spring 会自动将原生的持久化异常转换为 Spring 的统一数据访问异常体系，方便异常处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 数据访问层注解 (Repository Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DataSource
+               ↓
+        JdbcTemplate / HibernateTemplate
+               ↓
+        @Repository
+               ↓
+        TransactionManager
+    </code></pre>
+    <p>Spring 应用中，<code>DataSource</code> 负责管理数据库连接。<code>JdbcTemplate</code> 或 <code>HibernateTemplate</code> 等模板类提供了简化的数据库操作方法。带有 <code>@Repository</code> 注解的类使用这些模板类进行数据访问。<code>TransactionManager</code> 负责管理数据库事务，确保数据操作的一致性和完整性。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.stereotype.Repository;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        @Repository
+        public class UserRepository {
+            private final List<User> users = new ArrayList<>();
+
+            public void save(User user) {
+                users.add(user);
+            }
+
+            public List<User> findAll() {
+                return users;
+            }
+        }
+
+        class User {
+            private String name;
+
+            public User(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于类的声明。</li>
+        <li>类中主要定义与数据访问相关的方法，如插入、查询、更新和删除操作。</li>
+        <li>需要在 Spring 配置中开启组件扫描，确保 <code>@Repository</code> 注解的类能被发现。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>组件扫描阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，根据配置的组件扫描路径，扫描带有 <code>@Repository</code> 注解的类。</li>
+                <li>将这些类注册为 Bean 并存储在 Spring 容器中。</li>
+            </ul>
+        </li>
+        <li><strong>数据访问阶段</strong>
+            <ul>
+                <li>当其他组件（如服务层）调用 <code>@Repository</code> 注解类的方法时，该类使用相应的持久化技术（如 JDBC、Hibernate 等）与数据库进行交互。</li>
+                <li>在数据访问过程中，Spring 会自动将原生的持久化异常转换为 Spring 的统一数据访问异常体系。</li>
+            </ul>
+        </li>
+        <li><strong>事务管理阶段</strong>
+            <ul>
+                <li>如果涉及到事务操作，<code>TransactionManager</code> 会根据配置的事务规则，管理数据操作的事务边界。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>简单的数据库操作</td>
+            <td>使用 <code>@Repository</code> 注解标记类，结合 JDBC 或 JPA 进行基本的数据增删改查操作。</td>
+            <td><pre><code>import org.springframework.stereotype.Repository;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.List;
+
+@Repository
+public class ProductRepository {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public void save(Product product) {
+        entityManager.persist(product);
+    }
+
+    public List<Product> findAll() {
+        return entityManager.createQuery("SELECT p FROM Product p", Product.class).getResultList();
+    }
+}
+
+class Product {
+    private Long id;
+    private String name;
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>复杂的数据库查询</td>
+            <td>使用 <code>@Repository</code> 注解标记类，结合 Hibernate 或 MyBatis 进行复杂的 SQL 查询。</td>
+            <td><pre><code>import org.springframework.stereotype.Repository;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import java.util.List;
+
+@Repository
+public class OrderRepository {
+    private final SessionFactory sessionFactory;
+
+    public OrderRepository(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    public List<Order> findOrdersByCustomerId(Long customerId) {
+        Session session = sessionFactory.getCurrentSession();
+        return session.createQuery("SELECT o FROM Order o WHERE o.customer.id = :customerId", Order.class)
+               .setParameter("customerId", customerId)
+               .getResultList();
+    }
+}
+
+class Order {
+    private Long id;
+    private Customer customer;
+
+    // getters and setters
+}
+
+class Customer {
+    private Long id;
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据库事务管理</td>
+            <td>使用 <code>@Repository</code> 注解标记类，结合 Spring 的事务管理机制，确保数据操作的原子性。</td>
+            <td><pre><code>import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+@Repository
+public class AccountRepository {
+    @Transactional
+    public void transferMoney(Account fromAccount, Account toAccount, double amount) {
+        // 从源账户扣除金额
+        fromAccount.setBalance(fromAccount.getBalance() - amount);
+        // 向目标账户添加金额
+        toAccount.setBalance(toAccount.getBalance() + amount);
+        // 保存更新后的账户信息
+        // 这里省略具体的保存操作，实际中需要使用持久化技术
+    }
+}
+
+class Account {
+    private double balance;
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定 Bean 的名称。如果不指定，Spring 会根据类名生成一个默认的 Bean 名称，首字母小写。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Repository;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        @Repository
+        public class BookRepository {
+            private final List<Book> books = new ArrayList<>();
+
+            public void addBook(Book book) {
+                books.add(book);
+            }
+
+            public List<Book> getAllBooks() {
+                return books;
+            }
+        }
+
+        class Book {
+            private String title;
+
+            public Book(String title) {
+                this.title = title;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.stereotype.Service;
+
+        @Service
+        public class BookService {
+            private final BookRepository bookRepository;
+
+            @Autowired
+            public BookService(BookRepository bookRepository) {
+                this.bookRepository = bookRepository;
+            }
+
+            public void addNewBook(Book book) {
+                bookRepository.addBook(book);
+            }
+
+            public List<Book> getAllBooks() {
+                return bookRepository.getAllBooks();
+            }
+        }
+
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.ComponentScan;
+
+        @ComponentScan(basePackages = "com.example")
+        public class AppConfig {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                BookService bookService = context.getBean(BookService.class);
+
+                Book book = new Book("Spring in Action");
+                bookService.addNewBook(book);
+
+                List<Book> allBooks = bookService.getAllBooks();
+                for (Book b : allBooks) {
+                    System.out.println(b.getTitle());
+                }
+
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>通过 <code>@Repository</code> 注解将 <code>BookRepository</code> 注册为 Spring Bean，负责图书数据的管理。</li>
+        <li><code>BookService</code> 依赖于 <code>BookRepository</code>，提供图书业务逻辑。</li>
+        <li>在 <code>AppConfig</code> 类中启动 Spring 容器，添加一本图书并获取所有图书信息，最终输出图书标题。
+            <pre>
+                Spring in Action
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

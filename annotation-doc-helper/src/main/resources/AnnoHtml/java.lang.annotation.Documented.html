@@ -1,0 +1,145 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Documented</code> 是 Java 语言中的元注解，用于指定被修饰的注解会被 JavaDoc 等工具提取到文档中。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>文档生成：让注解信息出现在 JavaDoc 文档中，方便开发者理解注解用途。</li>
+        <li>增强可读性：为使用注解的类、方法等元素提供更详细的说明。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>元注解 (Meta Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        JavaDoc 工具
+               ↓
+        注解信息提取
+    </code></pre>
+    <p>通过 JavaDoc 工具将注解信息包含在生成的文档里。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 声明自定义注解并使用 @Documented
+        @Documented
+        @Target(ElementType.METHOD)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface MyMethodAnnotation {
+            String description() default "";
+        }
+
+        // 使用自定义注解
+        public class MyClass {
+            /**
+             * 这是一个示例方法
+             */
+            @MyMethodAnnotation(description = "此方法用于执行特定任务")
+            public void myMethod() {
+                // 方法实现
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>仅能用于注解声明的上方。</li>
+        <li>与 <code>@Target</code>、<code>@Retention</code> 等元注解配合使用来定义注解的完整特性。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解声明阶段</strong>
+            <ul>
+                <li>使用 <code>@Documented</code> 修饰自定义注解。</li>
+            </ul>
+        </li>
+        <li><strong>文档生成阶段</strong>
+            <ul>
+                <li>当使用 JavaDoc 工具生成文档时，工具会识别带有 <code>@Documented</code> 的注解。</li>
+                <li>将注解信息添加到对应元素（类、方法等）的文档中。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>库开发</td>
+            <td>让库中的注解信息在文档中可见，方便使用者了解注解用途。</td>
+            <td><pre><code>@Documented @ApiVersion</code></pre></td>
+        </tr>
+        <tr>
+            <td>框架开发</td>
+            <td>在框架文档中展示注解信息，帮助开发者更好地使用框架。</td>
+            <td><pre><code>@Documented @ComponentScan</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>无参数</td>
+            <td>-</td>
+            <td>-</td>
+            <td>该注解本身不接受参数。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 声明可文档化的注解
+        @Documented
+        @Target(ElementType.TYPE)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface MyClassAnnotation {
+            String author() default "";
+        }
+
+        /**
+         * 这是一个示例类
+         */
+        @MyClassAnnotation(author = "John Doe")
+        public class MySampleClass {
+            // 类实现
+        }
+
+        // 生成 JavaDoc 文档后，文档中会包含 MyClassAnnotation 的信息
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>使用 JavaDoc 工具生成文档时，<code>MySampleClass</code> 的文档中会显示 <code>@MyClassAnnotation</code> 的信息，如作者信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

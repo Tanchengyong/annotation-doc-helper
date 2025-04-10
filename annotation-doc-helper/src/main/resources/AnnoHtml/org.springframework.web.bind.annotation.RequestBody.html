@@ -1,0 +1,203 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@RequestBody</code> 是 Spring 框架中的注解，用于将 HTTP 请求体中的数据绑定到控制器方法的参数上。它通常用于处理 POST、PUT、PATCH 等请求，这些请求的参数通常包含在请求体中，而不是 URL 的查询字符串里。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据绑定：将请求体中的数据自动绑定到方法参数，支持多种数据格式，如 JSON、XML 等。</li>
+        <li>处理复杂数据：方便处理包含大量数据或复杂结构的数据，如对象列表、嵌套对象等。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerAdapter
+               ↓
+        HttpMessageConverter
+    </code></pre>
+    <p>Spring 的 <code>DispatcherServlet</code> 接收请求后，通过 <code>HandlerMapping</code> 找到匹配的处理器方法。<code>RequestMappingHandlerAdapter</code> 调用处理器方法时，使用 <code>@RequestBody</code> 注解，借助 <code>HttpMessageConverter</code> 将请求体的数据转换为方法参数所需的类型。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 处理创建用户的请求
+            @PostMapping("/users")
+            public User createUser(@RequestBody User user) {
+                return userService.createUser(user);
+            }
+
+            // 处理更新订单的请求
+            @PutMapping("/orders/{orderId}")
+            public Order updateOrder(@PathVariable("orderId") Long orderId, @RequestBody Order order) {
+                return orderService.updateOrder(orderId, order);
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能用于控制器方法的参数上。</li>
+        <li>通常用于处理 Content-Type 为 application/json、application/xml 等类型的请求。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>客户端发送请求，<code>DispatcherServlet</code> 接收请求后，<code>HandlerMapping</code> 根据请求 URL 找到匹配的控制器方法。</li>
+                <li>检查请求的 Content-Type 头，确定请求体的数据格式。</li>
+            </ul>
+        </li>
+        <li><strong>数据转换阶段</strong>
+            <ul>
+                <li><code>RequestMappingHandlerAdapter</code> 调用控制器方法时，根据 <code>@RequestBody</code> 注解，选择合适的 <code>HttpMessageConverter</code> 来处理请求体。</li>
+                <li><code>HttpMessageConverter</code> 将请求体的数据从原始格式（如 JSON、XML）转换为方法参数所需的 Java 对象类型。</li>
+            </ul>
+        </li>
+        <li><strong>方法执行阶段</strong>
+            <ul>
+                <li>将转换后的 Java 对象绑定到方法参数上，调用控制器方法，方法使用该参数执行相应的业务逻辑。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>创建资源</td>
+            <td>使用 <code>@RequestBody</code> 接收客户端发送的资源数据，创建新的资源。</td>
+            <td><pre><code>@PostMapping("/customers") public Customer createCustomer(@RequestBody Customer customer) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>更新资源</td>
+            <td>通过 <code>@RequestBody</code> 接收更新后的资源数据，对现有资源进行更新。</td>
+            <td><pre><code>@PutMapping("/products/{productId}") public Product updateProduct(@PathVariable("productId") Long productId, @RequestBody Product product) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>批量操作</td>
+            <td>接收包含多个对象的请求体，实现批量创建、更新等操作。</td>
+            <td><pre><code>@PostMapping("/orders/batch") public List&lt;Order&gt; createBatchOrders(@RequestBody List&lt;Order&gt; orders) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>required</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定请求体是否为必需项。若设置为 false，当请求中没有请求体时，方法参数将被赋值为 null。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+
+        // 定义用户类
+        class User {
+            private String name;
+            private String email;
+
+            public User() {}
+
+            public User(String name, String email) {
+                this.name = name;
+                this.email = email;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getEmail() {
+                return email;
+            }
+
+            public void setEmail(String email) {
+                this.email = email;
+            }
+        }
+
+        // 模拟用户服务类
+        class UserService {
+            public User createUser(User user) {
+                // 模拟创建用户逻辑
+                System.out.println("Creating user: " + user.getName());
+                return user;
+            }
+        }
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            private UserService userService = new UserService();
+
+            // 处理创建用户的请求
+            @PostMapping("/users")
+            public User createUser(@RequestBody User user) {
+                return userService.createUser(user);
+            }
+        }
+
+        // 验证代码
+        public class RequestBodyTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>POST /api/users</code> 请求，请求体为 JSON 格式的用户数据（如 <code>{"name": "John", "email": "john@example.com"}</code>）时，<code>@RequestBody</code> 会将请求体数据转换为 <code>User</code> 对象并绑定到 <code>createUser</code> 方法的参数上，方法创建用户并返回该用户对象。</li>
+    </ul>
+</div>
+
+</body>
+</html>

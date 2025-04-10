@@ -1,0 +1,281 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@RestControllerAdvice</code> 是 Spring 框架提供的一个注解，它是 <code>@ControllerAdvice</code> 和 <code>@ResponseBody</code> 的组合注解。该注解用于定义全局的异常处理类和全局的数据绑定等功能，能够对所有使用 <code>@RestController</code> 注解的控制器进行增强。它允许开发者在一个统一的地方处理控制器中抛出的异常，而不需要在每个控制器方法中单独处理异常。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>全局异常处理：捕获并处理所有 <code>@RestController</code> 控制器中抛出的异常，将统一的错误信息以 JSON 等格式返回给客户端，增强系统的健壮性和用户体验。</li>
+        <li>全局数据绑定：可以在全局范围内为所有控制器的方法绑定数据，例如添加公共的请求参数或请求头信息。</li>
+        <li>全局数据预处理：对所有控制器方法的输入参数进行预处理，例如对日期格式进行统一转换等。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerExceptionResolver
+               ↓
+        @RestControllerAdvice
+    </code></pre>
+    <p>当客户端发送请求到 <code>DispatcherServlet</code> 后，如果在控制器方法执行过程中抛出异常，<code>DispatcherServlet</code> 会调用 <code>HandlerExceptionResolver</code> 来处理异常。而使用 <code>@RestControllerAdvice</code> 注解的类会被 <code>HandlerExceptionResolver</code> 识别，其中定义的异常处理方法会被用来处理相应的异常。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.http.HttpStatus;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.ExceptionHandler;
+        import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+        // 全局异常处理类
+        @RestControllerAdvice
+        public class GlobalRestExceptionHandler {
+
+            // 处理自定义业务异常
+            @ExceptionHandler(BusinessException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleBusinessException(BusinessException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            // 处理其他未捕获的异常
+            @ExceptionHandler(Exception.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleGeneralException(Exception ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // 自定义业务异常类
+        class BusinessException extends RuntimeException {
+            public BusinessException(String message) {
+                super(message);
+            }
+        }
+
+        // 错误响应类
+        class ErrorResponse {
+            private int status;
+            private String message;
+
+            public ErrorResponse(int status, String message) {
+                this.status = status;
+                this.message = message;
+            }
+
+            public int getStatus() {
+                return status;
+            }
+
+            public void setStatus(int status) {
+                this.status = status;
+            }
+
+            public String getMessage() {
+                return message;
+            }
+
+            public void setMessage(String message) {
+                this.message = message;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于类上，被注解的类通常作为全局异常处理类或全局数据处理类。</li>
+        <li>在该类中可以使用 <code>@ExceptionHandler</code> 注解定义异常处理方法，使用 <code>@ModelAttribute</code> 注解进行全局数据绑定，使用 <code>@InitBinder</code> 注解进行全局数据预处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>异常抛出阶段</strong>
+            <ul>
+                <li>在 <code>@RestController</code> 控制器的方法执行过程中，如果发生异常，该异常会被抛出。</li>
+            </ul>
+        </li>
+        <li><strong>异常捕获阶段</strong>
+            <ul>
+                <li><code>DispatcherServlet</code> 捕获到异常后，会调用 <code>HandlerExceptionResolver</code> 来处理异常。</li>
+                <li><code>HandlerExceptionResolver</code> 会查找使用 <code>@RestControllerAdvice</code> 注解的类，并检查其中定义的 <code>@ExceptionHandler</code> 方法。</li>
+            </ul>
+        </li>
+        <li><strong>异常处理阶段</strong>
+            <ul>
+                <li>根据异常的类型，<code>HandlerExceptionResolver</code> 会调用相应的 <code>@ExceptionHandler</code> 方法。</li>
+                <li>异常处理方法会生成一个统一的错误响应对象，例如 <code>ErrorResponse</code>，并将其以 JSON 等格式返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>统一异常处理</td>
+            <td>使用 <code>@RestControllerAdvice</code> 定义全局异常处理类，捕获并处理不同类型的异常，返回统一格式的错误信息给客户端。</td>
+            <td><pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNullPointerException(NullPointerException ex) {...}
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>全局数据绑定</td>
+            <td>在全局范围内为所有控制器方法绑定公共的数据，例如添加公共的请求参数或请求头信息。</td>
+            <td><pre><code>@RestControllerAdvice
+public class GlobalDataBinder {
+    @ModelAttribute
+    public void addCommonAttributes(Model model) {
+        model.addAttribute("commonAttribute", "value");
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>全局数据预处理</td>
+            <td>对所有控制器方法的输入参数进行预处理，例如对日期格式进行统一转换。</td>
+            <td><pre><code>@RestControllerAdvice
+public class GlobalDataPreprocessor {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>basePackages</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要扫描的基础包，只有这些包下的 <code>@RestController</code> 控制器才会受到该 <code>@RestControllerAdvice</code> 类的影响。</td>
+        </tr>
+        <tr>
+            <td>basePackageClasses</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要扫描的基础类所在的包，作用与 <code>basePackages</code> 类似。</td>
+        </tr>
+        <tr>
+            <td>assignableTypes</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要匹配的控制器类，只有这些类的 <code>@RestController</code> 控制器才会受到该 <code>@RestControllerAdvice</code> 类的影响。</td>
+        </tr>
+        <tr>
+            <td>annotations</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要匹配的控制器类上的注解，只有带有这些注解的 <code>@RestController</code> 控制器才会受到该 <code>@RestControllerAdvice</code> 类的影响。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.http.HttpStatus;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.ExceptionHandler;
+        import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+        // 全局异常处理类
+        @RestControllerAdvice
+        public class GlobalRestExceptionHandler {
+
+            // 处理自定义业务异常
+            @ExceptionHandler(BusinessException.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleBusinessException(BusinessException ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            // 处理其他未捕获的异常
+            @ExceptionHandler(Exception.class)
+            public ResponseEntity&lt;ErrorResponse&gt; handleGeneralException(Exception ex) {
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+                return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        // 自定义业务异常类
+        class BusinessException extends RuntimeException {
+            public BusinessException(String message) {
+                super(message);
+            }
+        }
+
+        // 错误响应类
+        class ErrorResponse {
+            private int status;
+            private String message;
+
+            public ErrorResponse(int status, String message) {
+                this.status = status;
+                this.message = message;
+            }
+
+            public int getStatus() {
+                return status;
+            }
+
+            public void setStatus(int status) {
+                this.status = status;
+            }
+
+            public String getMessage() {
+                return message;
+            }
+
+            public void setMessage(String message) {
+                this.message = message;
+            }
+        }
+
+        // 验证代码
+        public class RestControllerAdviceTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当 <code>@RestController</code> 控制器中抛出 <code>BusinessException</code> 异常时，会被 <code>GlobalRestExceptionHandler</code> 类中的 <code>handleBusinessException</code> 方法捕获，并返回一个包含错误状态码和错误信息的 <code>ErrorResponse</code> 对象给客户端。</li>
+        <li>当抛出其他未捕获的异常时，会被 <code>handleGeneralException</code> 方法捕获，返回一个表示内部服务器错误的 <code>ErrorResponse</code> 对象给客户端。</li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.Transient</code> 是 JPA 中的注解，用于标记实体类中的某个字段，表明该字段不需要被持久化到数据库中。也就是说，在 JPA 进行数据库操作（如保存、更新、查询等）时，会忽略被 <code>@Transient</code> 注解标记的字段，不会在数据库表中为其创建对应的列。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据过滤：在实体类中可能存在一些临时数据或者不需要持久化到数据库的计算结果，使用该注解可以将这些数据排除在持久化操作之外。</li>
+        <li>性能优化：减少不必要的数据存储和传输，提高数据库操作的性能。</li>
+        <li>保持实体类完整性：在不影响数据库结构的前提下，在实体类中添加一些辅助字段或方法，方便业务逻辑处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体字段映射控制注解 (Entity Field Mapping Control Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Class
+          ↓
+    @Transient Field
+          ↓
+    Ignored by Database Operations
+    </code></pre>
+    <p>在 JPA 的实体类中，当使用 <code>@Transient</code> 注解标记某个字段时，JPA 在进行实体类与数据库表的映射过程中，会识别该注解并将被标记的字段排除在外，不会将其映射到数据库表的列中，在执行数据库操作时也不会对该字段进行处理。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.Transient;
+
+        @Entity
+        public class Employee {
+            @Id
+            private Long id;
+            private String name;
+            private double salary;
+
+            @Transient
+            private double bonus; // 临时计算的奖金，不需要持久化到数据库
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public double getSalary() {
+                return salary;
+            }
+
+            public void setSalary(double salary) {
+                this.salary = salary;
+            }
+
+            public double getBonus() {
+                return bonus;
+            }
+
+            public void setBonus(double bonus) {
+                this.bonus = bonus;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解可作用于实体类的字段上，用于标记不需要持久化的字段。</li>
+        <li>通常用于标记那些在业务逻辑中临时使用，但不需要存储到数据库中的数据。</li>
+        <li>被标记的字段不会影响实体类与数据库表的映射关系，数据库表中不会为其创建对应的列。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，会扫描实体类中的注解信息。当遇到 <code>@Transient</code> 注解时，会将被标记的字段从持久化元数据中排除。</li>
+                <li>JPA 会记录该字段不需要参与数据库操作，在后续的数据库表创建、数据插入、更新和查询等操作中不会考虑该字段。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>在执行插入操作时，JPA 不会将被 <code>@Transient</code> 标记的字段的值插入到数据库中。</li>
+                <li>在执行查询操作时，JPA 不会从数据库中为该字段加载数据，该字段的值需要在代码中手动设置或计算。</li>
+                <li>在执行更新操作时，同样不会对该字段进行更新。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>临时计算字段</td>
+            <td>在实体类中添加临时计算的字段，使用 <code>@Transient</code> 注解标记，避免持久化到数据库。</td>
+            <td><pre><code>@Entity
+public class Order {
+    @Id
+    private Long id;
+    private double totalAmount;
+
+    @Transient
+    private double discountAmount; // 临时计算的折扣金额
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>敏感信息处理</td>
+            <td>对于一些敏感信息，如密码的明文，在实体类中使用 <code>@Transient</code> 注解标记，加密后再存储到数据库。</td>
+            <td><pre><code>@Entity
+public class User {
+    @Id
+    private Long id;
+    private String encryptedPassword;
+
+    @Transient
+    private String plainPassword; // 明文密码，不持久化
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存数据</td>
+            <td>在实体类中添加缓存数据字段，使用 <code>@Transient</code> 注解标记，避免缓存数据持久化到数据库。</td>
+            <td><pre><code>@Entity
+public class Product {
+    @Id
+    private Long id;
+    private String name;
+
+    @Transient
+    private int cachedStock; // 缓存的库存数量
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <p><code>@Transient</code> 注解没有参数，它只是一个标记注解，用于简单地指示 JPA 忽略被标记的字段，不将其持久化到数据库。</p>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.Transient;
+
+        @Entity
+        public class Book {
+            @Id
+            private Long id;
+            private String title;
+            private double price;
+
+            @Transient
+            private double discountedPrice; // 临时计算的折扣价格
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            public void setTitle(String title) {
+                this.title = title;
+            }
+
+            public double getPrice() {
+                return price;
+            }
+
+            public void setPrice(double price) {
+                this.price = price;
+            }
+
+            public double getDiscountedPrice() {
+                return discountedPrice;
+            }
+
+            public void setDiscountedPrice(double discountedPrice) {
+                this.discountedPrice = discountedPrice;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Book book = new Book();
+                book.setId(1L);
+                book.setTitle("Java Programming");
+                book.setPrice(50.0);
+                book.setDiscountedPrice(40.0);
+
+                em.getTransaction().begin();
+                em.persist(book);
+                em.getTransaction().commit();
+
+                Book retrievedBook = em.find(Book.class, 1L);
+                System.out.println("Book Title: " + retrievedBook.getTitle());
+                System.out.println("Book Price: " + retrievedBook.getPrice());
+                System.out.println("Book Discounted Price: " + retrievedBook.getDiscountedPrice()); // 这里的折扣价格是手动设置的，不会从数据库加载
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据实体类创建 <code>Book</code> 表，但表中不会包含 <code>discountedPrice</code> 列。</li>
+        <li>在保存 <code>Book</code> 实体时，<code>discountedPrice</code> 字段的值不会被存储到数据库中。</li>
+        <li>查询 <code>Book</code> 实体时，<code>discountedPrice</code> 字段的值需要在代码中手动设置或计算，不会从数据库中加载。</li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Controller</code> 是 Spring 框架中的一个注解，它是 <code>@Component</code> 的一种特殊形式，用于标记一个类为 Spring MVC 中的控制器。该注解将类标识为处理 HTTP 请求的处理器，使得 Spring 能够自动扫描并将其纳入到 MVC 框架的请求处理流程中。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>请求处理：标记的类可以定义处理 HTTP 请求的方法，接收客户端请求并返回响应。</li>
+        <li>组件扫描：Spring 自动扫描带有 <code>@Controller</code> 注解的类，将其注册为 Bean 并管理其生命周期。</li>
+        <li>构建 Web 应用：简化了 Spring MVC 应用中控制器的开发，使得开发者可以专注于业务逻辑的实现。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring MVC 控制器注解 (Controller Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        @Controller
+               ↓
+        HandlerAdapter
+    </code></pre>
+    <p>Spring MVC 中，<code>DispatcherServlet</code> 作为前端控制器接收所有 HTTP 请求。<code>HandlerMapping</code> 根据请求的 URL 找到对应的 <code>@Controller</code> 注解的类及其处理方法。<code>HandlerAdapter</code> 负责调用这些处理方法，并将结果返回给 <code>DispatcherServlet</code>，最终将响应发送给客户端。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.ResponseBody;
+
+        @Controller
+        public class HelloController {
+            @GetMapping("/hello")
+            @ResponseBody
+            public String sayHello() {
+                return "Hello, World!";
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于类的声明。</li>
+        <li>类中可以定义多个处理请求的方法，使用 <code>@RequestMapping</code> 或其派生注解（如 <code>@GetMapping</code>、<code>@PostMapping</code> 等）来映射请求路径。</li>
+        <li>需要在 Spring MVC 配置中开启组件扫描，确保 <code>@Controller</code> 注解的类能被发现。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>组件扫描阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，根据配置的组件扫描路径，扫描带有 <code>@Controller</code> 注解的类。</li>
+                <li>将这些类注册为 Bean 并存储在 Spring 容器中。</li>
+            </ul>
+        </li>
+        <li><strong>请求映射阶段</strong>
+            <ul>
+                <li>当客户端发送 HTTP 请求时，<code>DispatcherServlet</code> 接收请求。</li>
+                <li><code>HandlerMapping</code> 根据请求的 URL 查找对应的 <code>@Controller</code> 类和处理方法。</li>
+            </ul>
+        </li>
+        <li><strong>请求处理阶段</strong>
+            <ul>
+                <li><code>HandlerAdapter</code> 调用找到的处理方法，并将请求参数传递给方法。</li>
+                <li>处理方法执行相应的业务逻辑，并返回处理结果。</li>
+            </ul>
+        </li>
+        <li><strong>响应处理阶段</strong>
+            <ul>
+                <li><code>DispatcherServlet</code> 将处理结果转换为 HTTP 响应，并发送给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>处理简单的 HTTP 请求</td>
+            <td>使用 <code>@Controller</code> 注解标记类，结合 <code>@RequestMapping</code> 或其派生注解处理特定 URL 的请求。</td>
+            <td><pre><code>@Controller
+public class SimpleController {
+    @GetMapping("/simple")
+    @ResponseBody
+    public String handleSimpleRequest() {
+        return "This is a simple request.";
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>构建 RESTful API</td>
+            <td>使用 <code>@Controller</code> 注解标记类，结合 <code>@ResponseBody</code> 注解返回 JSON 或 XML 数据。</td>
+            <td><pre><code>import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController // 相当于 @Controller + @ResponseBody
+public class RestApiController {
+    @GetMapping("/api/data")
+    public Object getData() {
+        return new MyData("Sample data");
+    }
+}
+
+class MyData {
+    private String value;
+
+    public MyData(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>处理表单提交</td>
+            <td>使用 <code>@Controller</code> 注解标记类，结合 <code>@PostMapping</code> 注解处理表单提交请求。</td>
+            <td><pre><code>import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+public class FormController {
+    @PostMapping("/submitForm")
+    public String handleFormSubmit(@RequestParam("name") String name) {
+        // 处理表单数据
+        return "success";
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定 Bean 的名称。如果不指定，Spring 会根据类名生成一个默认的 Bean 名称，首字母小写。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.RequestParam;
+
+        @Controller
+        public class GreetingController {
+            @GetMapping("/greeting")
+            public String greeting(@RequestParam(name = "name", defaultValue = "World") String name, Model model) {
+                model.addAttribute("name", name);
+                return "greeting";
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当访问 <code>/greeting?name=John</code> 时，<code>GreetingController</code> 的 <code>greeting</code> 方法会被调用。</li>
+        <li>方法将请求参数 <code>name</code> 的值添加到 <code>Model</code> 中，并返回视图名称 <code>greeting</code>。</li>
+        <li>Spring MVC 会根据视图解析器的配置，找到对应的视图模板（如 <code>greeting.jsp</code> 或 <code>greeting.html</code>），并将 <code>name</code> 的值传递给视图进行渲染。</li>
+    </ul>
+</div>
+
+</body>
+</html>

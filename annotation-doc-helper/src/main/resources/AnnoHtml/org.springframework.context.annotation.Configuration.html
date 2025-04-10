@@ -1,0 +1,201 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Configuration</code> 是 Spring 框架中的一个注解，用于标识一个类为 Spring 配置类。该类可包含多个使用 <code>@Bean</code> 注解的方法，这些方法会返回对象，而这些对象会被注册到 Spring 容器中作为 Bean。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>替代 XML 配置：在 Spring 应用中，以往常使用 XML 文件来配置 Bean，而 <code>@Configuration</code> 注解使开发者能够使用 Java 代码进行配置，提升了代码的可读性和可维护性。</li>
+        <li>管理 Bean 定义：配置类中的 <code>@Bean</code> 方法可定义和初始化 Bean，并且可以在方法中进行复杂的对象创建和依赖注入操作。</li>
+        <li>支持组件扫描和自动装配：配置类可与 <code>@ComponentScan</code> 等注解协同工作，实现组件的自动扫描和自动装配，简化 Spring 应用的配置流程。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 注解 (Spring Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationConfigApplicationContext
+               ↓
+        ConfigurationClassPostProcessor
+               ↓
+        @Configuration
+    </code></pre>
+    <p>当使用 <code>AnnotationConfigApplicationContext</code> 启动 Spring 应用时，<code>ConfigurationClassPostProcessor</code> 会对带有 <code>@Configuration</code> 注解的类进行处理。它会解析配置类中的 <code>@Bean</code> 方法，将这些方法返回的对象注册到 Spring 容器中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.Bean;
+        import org.springframework.context.annotation.Configuration;
+
+        @Configuration
+        public class AppConfig {
+            @Bean
+            public MyService myService() {
+                return new MyService();
+            }
+        }
+
+        class MyService {
+            public void doWork() {
+                System.out.println("Doing work...");
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于类上，被注解的类一般作为 Spring 应用的配置中心。</li>
+        <li>配置类中的 <code>@Bean</code> 方法名默认作为 Bean 的名称，也可通过 <code>@Bean</code> 注解的属性指定其他名称。</li>
+        <li>配置类可包含多个 <code>@Bean</code> 方法，用于定义多个 Bean。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>AnnotationConfigApplicationContext</code> 会扫描带有 <code>@Configuration</code> 注解的类。</li>
+                <li><code>ConfigurationClassPostProcessor</code> 会对这些配置类进行解析，识别其中的 <code>@Bean</code> 方法。</li>
+            </ul>
+        </li>
+        <li><strong>Bean 定义注册阶段</strong>
+            <ul>
+                <li>对于每个 <code>@Bean</code> 方法，<code>ConfigurationClassPostProcessor</code> 会创建一个对应的 Bean 定义，并将其注册到 Spring 容器的 Bean 定义注册表中。</li>
+            </ul>
+        </li>
+        <li><strong>Bean 实例化阶段</strong>
+            <ul>
+                <li>当 Spring 容器需要使用某个 Bean 时，会根据 Bean 定义从注册表中查找对应的 <code>@Bean</code> 方法，并调用该方法创建 Bean 实例。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>配置第三方库 Bean</td>
+            <td>当使用第三方库时，可在配置类中使用 <code>@Bean</code> 方法配置第三方库的对象，将其纳入 Spring 容器管理。</td>
+            <td><pre><code>@Configuration
+public class ThirdPartyConfig {
+    @Bean
+    public ThirdPartyService thirdPartyService() {
+        return new ThirdPartyService();
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>自定义 Bean 初始化逻辑</td>
+            <td>对于一些需要复杂初始化逻辑的 Bean，可在 <code>@Bean</code> 方法中编写初始化代码。</td>
+            <td><pre><code>@Configuration
+public class CustomBeanConfig {
+    @Bean
+    public CustomBean customBean() {
+        CustomBean bean = new CustomBean();
+        bean.setProperty("value");
+        return bean;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多环境配置</td>
+            <td>根据不同的运行环境（如开发、测试、生产），使用不同的配置类来配置 Bean。</td>
+            <td><pre><code>@Configuration
+@Profile("dev")
+public class DevConfig {
+    @Bean
+    public DataSource dataSource() {
+        // 开发环境数据源配置
+        return new DevDataSource();
+    }
+}
+
+@Configuration
+@Profile("prod")
+public class ProdConfig {
+    @Bean
+    public DataSource dataSource() {
+        // 生产环境数据源配置
+        return new ProdDataSource();
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>proxyBeanMethods</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定是否为配置类生成 CGLIB 代理。若为 <code>true</code>，配置类会被代理，<code>@Bean</code> 方法调用会确保单例性；若为 <code>false</code>，则不生成代理，<code>@Bean</code> 方法调用会直接执行，可能创建多个实例。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.Bean;
+        import org.springframework.context.annotation.Configuration;
+
+        @Configuration
+        public class AppConfig {
+            @Bean
+            public MyService myService() {
+                return new MyService();
+            }
+        }
+
+        class MyService {
+            public void doWork() {
+                System.out.println("Doing work...");
+            }
+        }
+
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                MyService service = context.getBean(MyService.class);
+                service.doWork();
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动应用时，Spring 容器会解析 <code>AppConfig</code> 配置类，将 <code>myService</code> 方法返回的 <code>MyService</code> 对象注册为 Bean。</li>
+        <li>从 Spring 容器中获取 <code>MyService</code> Bean 并调用 <code>doWork</code> 方法，会输出 "Doing work..."。</li>
+        <li>最后关闭 Spring 容器。</li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@CrossOrigin</code> 是 Spring 框架提供的注解，用于解决跨域资源共享（CORS）问题。在现代 Web 应用中，由于浏览器的同源策略限制，不同源（协议、域名、端口任一不同）的页面之间无法直接进行资源共享和交互。<code>@CrossOrigin</code> 注解允许开发者在控制器类或方法上指定允许跨域访问的规则，从而使得不同源的客户端能够访问服务器资源。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>突破同源限制：允许不同源的客户端（如不同域名或端口的前端页面）向服务器发送请求并获取响应，增强了 Web 应用的灵活性和可扩展性。</li>
+        <li>简化跨域配置：通过简单的注解方式，避免了复杂的 XML 配置或过滤器编写，提高了开发效率。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        CorsFilter
+               ↓
+        @CrossOrigin
+    </code></pre>
+    <p>当客户端发送跨域请求时，<code>DispatcherServlet</code> 会将请求传递给 <code>CorsFilter</code> 进行处理。<code>CorsFilter</code> 会检查请求是否符合 <code>@CrossOrigin</code> 注解所定义的跨域规则。如果符合规则，服务器会在响应头中添加相应的 CORS 相关信息，允许客户端访问资源；如果不符合规则，请求将被阻止。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.web.bind.annotation.CrossOrigin;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.RestController;
+
+        // 允许所有跨域请求访问该控制器下的所有方法
+        @CrossOrigin
+        @RestController
+        public class MyController {
+
+            // 允许指定域名的跨域请求访问该方法
+            @CrossOrigin(origins = "http://example.com")
+            @GetMapping("/data")
+            public String getData() {
+                return "This is some data.";
+            }
+
+            // 允许多个域名的跨域请求访问该方法
+            @CrossOrigin(origins = {"http://domain1.com", "http://domain2.com"})
+            @GetMapping("/more-data")
+            public String getMoreData() {
+                return "This is more data.";
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解可以用于控制器类上，这样该类下的所有方法都将遵循相同的跨域规则；也可以用于控制器方法上，为特定的方法指定不同的跨域规则。</li>
+        <li>如果在类和方法上都使用了该注解，方法上的注解配置会覆盖类上的配置。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>预检请求阶段（对于复杂请求）</strong>
+            <ul>
+                <li>当客户端发送复杂的跨域请求（如包含自定义请求头、使用非简单 HTTP 方法等）时，浏览器会先发送一个预检请求（OPTIONS 请求）到服务器。</li>
+                <li>服务器的 <code>CorsFilter</code> 会检查预检请求，并根据 <code>@CrossOrigin</code> 注解的配置判断是否允许该请求。如果允许，服务器会在响应头中添加 CORS 相关信息，如 <code>Access-Control-Allow-Origin</code> 等。</li>
+            </ul>
+        </li>
+        <li><strong>实际请求阶段</strong>
+            <ul>
+                <li>浏览器在收到预检请求的响应且允许跨域后，会发送实际的请求到服务器。</li>
+                <li><code>CorsFilter</code> 再次检查实际请求，确保其符合跨域规则。如果符合，服务器处理请求并在响应头中添加相应的 CORS 信息，将响应返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>前后端分离开发</td>
+            <td>前端应用和后端 API 部署在不同的域名或端口上，使用 <code>@CrossOrigin</code> 注解允许前端页面跨域访问后端 API。</td>
+            <td><pre><code>@CrossOrigin
+@RestController
+public class ApiController {
+    @GetMapping("/api/data")
+    public String getData() {...}
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>微服务架构</td>
+            <td>不同的微服务可能部署在不同的域名或端口上，通过该注解实现微服务之间的跨域调用。</td>
+            <td><pre><code>@CrossOrigin(origins = "http://service2.com")
+@GetMapping("/service1/data")
+public String getService1Data() {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>第三方集成</td>
+            <td>允许第三方应用跨域访问自己的服务器资源，方便进行系统集成。</td>
+            <td><pre><code>@CrossOrigin(origins = "http://third-party.com")
+@GetMapping("/integrate")
+public String integrateWithThirdParty() {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>origins</td>
+            <td>String[]</td>
+            <td>{"*"}</td>
+            <td>指定允许访问该资源的源（域名）列表。可以使用 <code>*</code> 表示允许所有源访问，但在生产环境中不建议这样使用，因为存在安全风险。例如 <code>{"http://example.com", "https://another-example.com"}</code>。</td>
+        </tr>
+        <tr>
+            <td>methods</td>
+            <td>RequestMethod[]</td>
+            <td>[]</td>
+            <td>指定允许的 HTTP 请求方法，如 <code>GET</code>、<code>POST</code> 等。如果不指定，将使用默认的支持方法。</td>
+        </tr>
+        <tr>
+            <td>allowedHeaders</td>
+            <td>String[]</td>
+            <td>[]</td>
+            <td>指定允许的请求头列表。客户端请求中包含的其他请求头将被拒绝。</td>
+        </tr>
+        <tr>
+            <td>exposedHeaders</td>
+            <td>String[]</td>
+            <td>[]</td>
+            <td>指定允许客户端访问的响应头列表。默认情况下，只有少数几个简单响应头是可访问的，使用该参数可以暴露更多的响应头。</td>
+        </tr>
+        <tr>
+            <td>allowCredentials</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定是否允许客户端发送包含凭证信息（如 cookies、HTTP 认证等）的请求。值为 <code>"true"</code> 表示允许，<code>"false"</code> 表示不允许。</td>
+        </tr>
+        <tr>
+            <td>maxAge</td>
+            <td>long</td>
+            <td>-1</td>
+            <td>指定预检请求的结果可以被缓存的时间（秒）。在这个时间内，浏览器将不再发送预检请求，提高请求效率。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.CrossOrigin;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.RestController;
+
+        // 允许所有跨域请求访问该控制器下的所有方法
+        @CrossOrigin
+        @RestController
+        public class MyController {
+
+            // 允许指定域名的跨域请求访问该方法
+            @CrossOrigin(origins = "http://example.com", methods = {RequestMethod.GET}, allowedHeaders = {"Authorization"}, exposedHeaders = {"Custom-Header"}, allowCredentials = "true", maxAge = 3600)
+            @GetMapping("/data")
+            public String getData() {
+                return "This is some data.";
+            }
+
+            // 允许多个域名的跨域请求访问该方法
+            @CrossOrigin(origins = {"http://domain1.com", "http://domain2.com"})
+            @GetMapping("/more-data")
+            public String getMoreData() {
+                return "This is more data.";
+            }
+        }
+
+        // 验证代码
+        public class CrossOriginTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当 <code>http://example.com</code> 域名下的客户端发送 GET 请求到 <code>/data</code> 接口时，由于该接口的 <code>@CrossOrigin</code> 注解允许该域名访问，服务器会处理请求并在响应头中添加相应的 CORS 信息，客户端可以正常获取数据。</li>
+        <li>当 <code>http://domain1.com</code> 或 <code>http://domain2.com</code> 域名下的客户端发送请求到 <code>/more-data</code> 接口时，也会因为注解配置而被允许访问。</li>
+    </ul>
+</div>
+
+</body>
+</html>

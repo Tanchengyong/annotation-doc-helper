@@ -1,0 +1,244 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ConfigurationProperties</code> 是 Spring Boot 框架中的注解，用于将配置文件（如 <code>application.properties</code> 或 <code>application.yml</code>）中的属性值绑定到 Java 对象上。通过该注解，开发者可以方便地将配置信息注入到自定义的配置类中，实现配置与代码的分离。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>配置属性绑定：将配置文件中的属性值自动绑定到 Java 对象的属性上，避免手动解析配置文件。</li>
+        <li>类型安全：在绑定过程中，会进行类型检查，确保属性值的类型与 Java 对象属性的类型一致，提高代码的安全性。</li>
+        <li>配置管理：将相关的配置属性集中管理在一个 Java 类中，使配置信息更加清晰和易于维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring Boot 注解 (Spring Boot Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        ConfigurationPropertiesBindingPostProcessor
+               ↓
+        PropertySourcesPropertyResolver
+               ↓
+        @ConfigurationProperties
+    </code></pre>
+    <p>当 Spring Boot 应用启动时，<code>ConfigurationPropertiesBindingPostProcessor</code> 会处理使用 <code>@ConfigurationProperties</code> 注解的类。它会借助 <code>PropertySourcesPropertyResolver</code> 从配置文件中解析属性值，并将这些值绑定到对应的 Java 对象属性上。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.boot.context.properties.ConfigurationProperties;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        @ConfigurationProperties(prefix = "myapp")
+        public class MyAppProperties {
+            private String name;
+            private int version;
+
+            // Getters 和 Setters
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getVersion() {
+                return version;
+            }
+
+            public void setVersion(int version) {
+                this.version = version;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于 Java 类上，被注解的类需要有对应的 getter 和 setter 方法，以便 Spring 能够进行属性值的注入。</li>
+        <li>使用 <code>prefix</code> 属性指定配置文件中属性的前缀，这样可以将具有相同前缀的属性绑定到该类的属性上。</li>
+        <li>被注解的类需要注册为 Spring Bean，可以使用 <code>@Component</code> 或其他 Bean 定义注解。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置文件加载阶段</strong>
+            <ul>
+                <li>Spring Boot 启动时会加载配置文件（如 <code>application.properties</code> 或 <code>application.yml</code>），并将其中的属性信息存储在 <code>PropertySources</code> 中。</li>
+            </ul>
+        </li>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li><code>ConfigurationPropertiesBindingPostProcessor</code> 会扫描所有使用 <code>@ConfigurationProperties</code> 注解的类。</li>
+                <li>解析注解中的 <code>prefix</code> 属性，确定要绑定的配置属性的前缀。</li>
+            </ul>
+        </li>
+        <li><strong>属性绑定阶段</strong>
+            <ul>
+                <li><code>PropertySourcesPropertyResolver</code> 会根据 <code>prefix</code> 从 <code>PropertySources</code> 中查找匹配的属性。</li>
+                <li>将找到的属性值通过 setter 方法注入到 Java 对象的对应属性中，完成属性绑定。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据库连接配置</td>
+            <td>将数据库连接相关的配置属性（如数据库 URL、用户名、密码等）绑定到一个 Java 类中，方便管理和使用。</td>
+            <td><pre><code>
+
+@Component
+@ConfigurationProperties(prefix = "spring.datasource")
+public class DataSourceProperties {
+    private String url;
+    private String username;
+    private String password;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>第三方服务配置</td>
+            <td>当使用第三方服务（如短信服务、邮件服务等）时，将服务的配置信息（如 API 密钥、服务器地址等）绑定到一个 Java 类中。</td>
+            <td><pre><code>
+
+@Component
+@ConfigurationProperties(prefix = "sms.service")
+public class SmsServiceProperties {
+    private String apiKey;
+    private String serverUrl;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>应用自定义配置</td>
+            <td>对于应用的自定义配置（如缓存大小、定时任务间隔等），使用该注解将配置信息绑定到 Java 类中。</td>
+            <td><pre><code>@Component
+@ConfigurationProperties(prefix = "myapp.custom")
+public class CustomAppProperties {
+    private int cacheSize;
+    private long taskInterval;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>prefix</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定配置文件中属性的前缀，用于筛选要绑定的属性。例如，设置为 <code>myapp</code>，则会绑定以 <code>myapp.</code> 开头的属性。</td>
+        </tr>
+        <tr>
+            <td>ignoreInvalidFields</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>指定是否忽略无效的字段。如果为 <code>true</code>，当配置文件中的属性无法绑定到 Java 对象的属性时，不会抛出异常。</td>
+        </tr>
+        <tr>
+            <td>ignoreUnknownFields</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定是否忽略未知的字段。如果为 <code>true</code>，当配置文件中存在未在 Java 对象中定义的属性时，不会抛出异常。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.boot.context.properties.ConfigurationProperties;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        @ConfigurationProperties(prefix = "myapp")
+        public class MyAppProperties {
+            private String name;
+            private int version;
+
+            // Getters 和 Setters
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getVersion() {
+                return version;
+            }
+
+            public void setVersion(int version) {
+                this.version = version;
+            }
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.boot.CommandLineRunner;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        class MyAppRunner implements CommandLineRunner {
+            @Autowired
+            private MyAppProperties myAppProperties;
+
+            @Override
+            public void run(String... args) throws Exception {
+                System.out.println("App Name: " + myAppProperties.getName());
+                System.out.println("App Version: " + myAppProperties.getVersion());
+            }
+        }
+
+        // 配置文件 application.properties 示例
+        // myapp.name=My Awesome App
+        // myapp.version=1
+
+        // 验证代码
+        import org.springframework.boot.SpringApplication;
+        import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+        @SpringBootApplication
+        public class MyApp {
+            public static void main(String[] args) {
+                SpringApplication.run(MyApp.class, args);
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动 <code>MyApp</code> 应用时，Spring Boot 会将 <code>application.properties</code> 中以 <code>myapp.</code> 开头的属性值绑定到 <code>MyAppProperties</code> 类的对应属性上。</li>
+        <li><code>MyAppRunner</code> 类会在应用启动后执行，打印出绑定后的应用名称和版本信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

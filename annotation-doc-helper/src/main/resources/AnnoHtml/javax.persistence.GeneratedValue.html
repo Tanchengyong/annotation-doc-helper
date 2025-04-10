@@ -1,0 +1,250 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.GeneratedValue</code> 是 JPA（Java Persistence API）中的注解，主要用于指定实体类主键的生成策略。
+        当在数据库中插入新记录时，该注解能让 JPA 按照预设规则自动生成主键值，避免手动赋值的繁琐和可能出现的错误。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>自动化主键生成：减少手动设置主键值的工作量，提高开发效率。</li>
+        <li>保证主键唯一性：根据不同的生成策略，确保生成的主键值在数据库中是唯一的。</li>
+        <li>适配不同数据库：支持多种生成策略，可根据不同数据库的特性进行选择。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体映射注解 (Entity Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @GeneratedValue
+               ↓
+        Database Primary Key Generation
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 在处理实体对象的持久化操作时，会参考 <code>@GeneratedValue</code> 注解。
+        依据注解指定的生成策略，在数据库插入新记录时生成相应的主键值，完成实体对象与数据库记录的映射。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+        import javax.persistence.Id;
+
+        @Entity
+        public class Item {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long itemId;
+            private String itemName;
+
+            public Long getItemId() {
+                return itemId;
+            }
+
+            public void setItemId(Long itemId) {
+                this.itemId = itemId;
+            }
+
+            public String getItemName() {
+                return itemName;
+            }
+
+            public void setItemName(String itemName) {
+                this.itemName = itemName;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解需与 <code>@Id</code> 注解一起使用，且作用于实体类的主键属性上。</li>
+        <li>根据数据库类型和业务需求选择合适的生成策略。</li>
+        <li>如果使用自定义的生成器，要确保生成器已正确配置。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，扫描带有 <code>@Entity</code>、<code>@Id</code> 和 <code>@GeneratedValue</code> 注解的实体类。</li>
+                <li>解析 <code>@GeneratedValue</code> 注解中的策略和生成器信息，存储在 JPA 元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>实体持久化阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行 <code>persist()</code> 方法将实体对象保存到数据库时，根据元数据中的生成策略生成主键值。</li>
+                <li>将生成的主键值赋给实体对象的主键属性，并插入到数据库的相应记录中。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>自增主键（适用于支持自增特性的数据库）</td>
+            <td>使用 <code>GenerationType.IDENTITY</code> 策略，利用数据库的自增功能生成主键。</td>
+            <td><pre><code>@Entity
+public class Employee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long employeeId;
+    private String employeeName;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>序列主键（适用于支持序列的数据库，如 Oracle）</td>
+            <td>使用 <code>GenerationType.SEQUENCE</code> 策略，并结合 <code>@SequenceGenerator</code> 注解定义序列。</td>
+            <td><pre><code>@Entity
+@SequenceGenerator(name = "order_seq", sequenceName = "ORDER_SEQ", allocationSize = 1)
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_seq")
+    private Long orderId;
+    private double orderAmount;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>表主键生成（使用单独的表来管理主键值）</td>
+            <td>使用 <code>GenerationType.TABLE</code> 策略，并结合 <code>@TableGenerator</code> 注解定义表生成器。</td>
+            <td><pre><code>@Entity
+@TableGenerator(name = "product_gen", table = "PRODUCT_ID_TABLE", pkColumnName = "ID_NAME", valueColumnName = "ID_VALUE", allocationSize = 1)
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "product_gen")
+    private Long productId;
+    private String productName;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>自动选择策略（由 JPA 提供者根据数据库类型自动选择）</td>
+            <td>使用 <code>GenerationType.AUTO</code> 策略。</td>
+            <td><pre><code>@Entity
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long customerId;
+    private String customerName;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>strategy</td>
+            <td>GenerationType</td>
+            <td>GenerationType.AUTO</td>
+            <td>指定主键的生成策略，可选值有 <code>IDENTITY</code>、<code>SEQUENCE</code>、<code>TABLE</code>、<code>AUTO</code>。</td>
+        </tr>
+        <tr>
+            <td>generator</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定生成器的名称，当使用自定义生成器（如 <code>@SequenceGenerator</code> 或 <code>@TableGenerator</code>）时使用。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+        import javax.persistence.Id;
+
+        @Entity
+        public class Invoice {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long invoiceId;
+            private double invoiceAmount;
+
+            public Long getInvoiceId() {
+                return invoiceId;
+            }
+
+            public void setInvoiceId(Long invoiceId) {
+                this.invoiceId = invoiceId;
+            }
+
+            public double getInvoiceAmount() {
+                return invoiceAmount;
+            }
+
+            public void setInvoiceAmount(double invoiceAmount) {
+                this.invoiceAmount = invoiceAmount;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Invoice invoice = new Invoice();
+                invoice.setInvoiceAmount(100.0);
+
+                em.getTransaction().begin();
+                em.persist(invoice);
+                em.getTransaction().commit();
+
+                Long invoiceId = invoice.getInvoiceId();
+                Invoice retrievedInvoice = em.find(Invoice.class, invoiceId);
+                System.out.println("Retrieved Invoice Amount: " + retrievedInvoice.getInvoiceAmount());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@GeneratedValue</code> 注解的 <code>IDENTITY</code> 策略，
+            利用数据库的自增功能生成主键值，并将 <code>Invoice</code> 实体对象保存到数据库中。</li>
+        <li>通过生成的主键值可以从数据库中检索到对应的实体对象，并打印出发票金额。</li>
+    </ul>
+</div>
+
+</body>
+</html>

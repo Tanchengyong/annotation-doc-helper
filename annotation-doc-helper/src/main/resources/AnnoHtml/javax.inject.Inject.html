@@ -1,0 +1,249 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.inject.Inject</code> 是 Java 依赖注入标准（JSR 330）中定义的注解，用于标识需要进行依赖注入的点。
+        它可以应用于构造函数、方法、字段等，告知依赖注入容器在创建对象时，将所需的依赖自动注入到这些位置。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>依赖注入：实现依赖的自动注入，降低组件之间的耦合度，提高代码的可维护性和可测试性。</li>
+        <li>标准化：作为 Java 标准的依赖注入注解，提供了统一的方式来表达依赖关系，便于不同依赖注入框架的集成和使用。</li>
+        <li>代码简洁：减少了手动创建和管理依赖对象的代码，使代码更加简洁和清晰。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Java 依赖注入注解 (Dependency Injection Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Dependency Injection Container
+               ↓
+        @Inject
+               ↓
+        Managed Bean
+    </code></pre>
+    <p>依赖注入容器（如 Spring、Guice 等）负责管理对象的生命周期和依赖关系。<code>@Inject</code> 注解标记了需要注入依赖的位置，
+        容器在创建 <code>Managed Bean</code> 时，会根据注解信息将相应的依赖注入到对象中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.inject.Inject;
+
+        class MessageService {
+            public String getMessage() {
+                return "Hello, World!";
+            }
+        }
+
+        class MessagePrinter {
+            private final MessageService messageService;
+
+            @Inject
+            public MessagePrinter(MessageService messageService) {
+                this.messageService = messageService;
+            }
+
+            public void printMessage() {
+                System.out.println(messageService.getMessage());
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>可以作用于构造函数、方法、字段。</li>
+        <li>当作用于构造函数时，该构造函数可以有多个参数，容器会自动解析并注入这些参数。</li>
+        <li>当作用于字段时，字段不能是 <code>final</code> 类型（除非使用特殊的注入方式）。</li>
+        <li>需要确保依赖注入容器正确配置并支持 JSR 330 标准。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>容器初始化阶段</strong>
+            <ul>
+                <li>依赖注入容器启动时，会扫描带有 <code>@Inject</code> 注解的类和成员。</li>
+                <li>容器会创建对象图，分析各个对象之间的依赖关系。</li>
+            </ul>
+        </li>
+        <li><strong>依赖解析阶段</strong>
+            <ul>
+                <li>当需要创建一个带有 <code>@Inject</code> 注解的对象时，容器会根据注解信息，查找并解析所需的依赖。</li>
+                <li>如果依赖存在于容器中，容器会将其注入到对象的相应位置；如果依赖不存在，可能会抛出异常。</li>
+            </ul>
+        </li>
+        <li><strong>对象创建与注入阶段</strong>
+            <ul>
+                <li>容器根据解析后的依赖信息，创建对象实例，并将依赖注入到对象的构造函数、方法或字段中。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>服务层依赖注入</td>
+            <td>在服务层类中使用 <code>@Inject</code> 注解注入数据访问层的依赖，实现业务逻辑与数据访问的分离。</td>
+            <td><pre><code>import javax.inject.Inject;
+
+class UserRepository {
+    public void saveUser(User user) {
+        // 保存用户逻辑
+    }
+}
+
+class UserService {
+    private final UserRepository userRepository;
+
+    @Inject
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void createUser(User user) {
+        userRepository.saveUser(user);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>控制器层依赖注入</td>
+            <td>在控制器类中使用 <code>@Inject</code> 注解注入服务层的依赖，处理客户端请求并调用服务层方法。</td>
+            <td><pre><code>import javax.inject.Inject;
+
+class UserController {
+    private final UserService userService;
+
+    @Inject
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void handleCreateUserRequest(User user) {
+        userService.createUser(user);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>测试场景</td>
+            <td>在测试类中使用 <code>@Inject</code> 注解注入模拟的依赖，方便进行单元测试。</td>
+            <td><pre><code>import javax.inject.Inject;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+class UserServiceTest {
+    @Inject
+    private UserRepository mockUserRepository;
+
+    private UserService userService;
+
+    @Test
+    public void testCreateUser() {
+        mockUserRepository = mock(UserRepository.class);
+        userService = new UserService(mockUserRepository);
+        User user = new User();
+        userService.createUser(user);
+        verify(mockUserRepository).saveUser(user);
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <p><code>@Inject</code> 注解没有参数。它只是一个标记注解，用于标识需要进行依赖注入的位置。</p>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.inject.Inject;
+
+        class Logger {
+            public void log(String message) {
+                System.out.println("Logging: " + message);
+            }
+        }
+
+        class Calculator {
+            private final Logger logger;
+
+            @Inject
+            public Calculator(Logger logger) {
+                this.logger = logger;
+            }
+
+            public int add(int a, int b) {
+                int result = a + b;
+                logger.log("Calculated result: " + result);
+                return result;
+            }
+        }
+
+        import javax.inject.Inject;
+        import javax.inject.Singleton;
+        import java.util.HashMap;
+        import java.util.Map;
+
+        @Singleton
+        class Injector {
+            private final Map&lt;Class&lt;?&gt;, Object&gt; instances = new HashMap&lt;&gt;();
+
+            @Inject
+            public Injector() {
+                instances.put(Logger.class, new Logger());
+                instances.put(Calculator.class, new Calculator(instances.get(Logger.class)));
+            }
+
+            public &lt;T&gt; T getInstance(Class&lt;T&gt; clazz) {
+                return clazz.cast(instances.get(clazz));
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                Injector injector = new Injector();
+                Calculator calculator = injector.getInstance(Calculator.class);
+                int result = calculator.add(2, 3);
+                System.out.println("Result: " + result);
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，通过自定义的 <code>Injector</code> 实现依赖注入。</li>
+        <li><code>Calculator</code> 类的 <code>add</code> 方法会调用 <code>Logger</code> 类的 <code>log</code> 方法记录计算结果。</li>
+        <li>控制台输出如下：
+            <pre>
+                Logging: Calculated result: 5
+                Result: 5
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

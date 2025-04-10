@@ -1,0 +1,219 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>org.springframework.context.annotation.ComponentScan.Filter</code> 是 Spring 框架中用于 <code>@ComponentScan</code> 注解的内部注解，主要用于在组件扫描过程中对要扫描的组件进行过滤。<code>@ComponentScan</code> 注解用于指定 Spring 自动扫描的包路径，而 <code>Filter</code> 则允许开发者精确控制哪些组件会被包含或排除在扫描结果之外。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>精确控制扫描范围：通过指定包含或排除规则，开发者可以避免扫描不必要的类，提高应用启动速度，减少 Spring 容器中 Bean 的数量。</li>
+        <li>支持多种过滤类型：可以根据类的注解、类型、正则表达式等不同条件进行过滤，满足多样化的扫描需求。</li>
+        <li>定制组件扫描逻辑：在复杂的项目结构中，开发者可以根据业务需求灵活定制扫描逻辑，确保只有符合特定条件的组件被注册到 Spring 容器中。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 注解 (Spring Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        ComponentScanAnnotationParser
+               ↓
+        ClassPathScanningCandidateComponentProvider
+               ↓
+        @ComponentScan.Filter
+    </code></pre>
+    <p>当 Spring 应用启动时，<code>ComponentScanAnnotationParser</code> 会解析 <code>@ComponentScan</code> 注解。在解析过程中，会读取其中的 <code>Filter</code> 配置。然后，<code>ClassPathScanningCandidateComponentProvider</code> 会根据这些过滤规则对指定包路径下的类进行扫描，只有符合过滤条件的类才会被作为候选组件，最终注册到 Spring 容器中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.ComponentScan;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.stereotype.Service;
+
+        @Configuration
+        @ComponentScan(basePackages = "com.example.demo",
+                includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Service.class),
+                excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.example.demo.excluded.*"))
+        public class AppConfig {
+            // 配置类其他内容
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解作为 <code>@ComponentScan</code> 注解的一部分，通常在配置类上使用，配置类需要使用 <code>@Configuration</code> 注解。</li>
+        <li>可以在 <code>@ComponentScan</code> 的 <code>includeFilters</code> 和 <code>excludeFilters</code> 属性中使用多个 <code>Filter</code> 注解，分别指定包含和排除的规则。</li>
+        <li>需要根据不同的 <code>FilterType</code> 合理设置 <code>classes</code> 或 <code>pattern</code> 属性，以达到预期的过滤效果。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 启动时，<code>ComponentScanAnnotationParser</code> 会解析 <code>@ComponentScan</code> 注解，获取其中的 <code>includeFilters</code> 和 <code>excludeFilters</code> 配置。</li>
+                <li>将每个 <code>Filter</code> 注解的信息封装成相应的过滤规则对象。</li>
+            </ul>
+        </li>
+        <li><strong>扫描阶段</strong>
+            <ul>
+                <li><code>ClassPathScanningCandidateComponentProvider</code> 会遍历指定包路径下的所有类。</li>
+                <li>对于每个类，依次应用 <code>includeFilters</code> 和 <code>excludeFilters</code> 中的过滤规则进行判断。</li>
+            </ul>
+        </li>
+        <li><strong>过滤判断阶段</strong>
+            <ul>
+                <li>如果一个类满足所有 <code>includeFilters</code> 规则（如果有）且不满足任何 <code>excludeFilters</code> 规则，则该类被视为候选组件。</li>
+                <li>候选组件会被注册到 Spring 容器中，成为 Spring Bean。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>排除测试类</td>
+            <td>在生产环境中，为了避免测试类被扫描到 Spring 容器中，可以使用正则表达式过滤规则排除测试类。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example.app",
+        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.example.app.test.*"))
+public class ProductionConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>仅扫描特定注解的类</td>
+            <td>当只需要将带有特定注解的类注册到 Spring 容器中时，可以使用注解类型过滤规则。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example.service",
+        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = CustomServiceAnnotation.class))
+public class ServiceConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>避免扫描第三方库中的某些类</td>
+            <td>在集成第三方库时，可能希望排除其中某些不需要的类，可以使用类类型过滤规则。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example",
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ThirdPartyUnwantedClass.class))
+public class IntegrationConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>type</td>
+            <td>FilterType</td>
+            <td>FilterType.ANNOTATION</td>
+            <td>指定过滤类型，可选值包括 <code>ANNOTATION</code>（按注解过滤）、<code>ASSIGNABLE_TYPE</code>（按类类型过滤）、<code>ASPECTJ</code>（按 AspectJ 表达式过滤）、<code>REGEX</code>（按正则表达式过滤）、<code>CUSTOM</code>（自定义过滤器）。</td>
+        </tr>
+        <tr>
+            <td>classes</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>当 <code>type</code> 为 <code>ANNOTATION</code> 或 <code>ASSIGNABLE_TYPE</code> 时，指定要过滤的注解类或类类型。</td>
+        </tr>
+        <tr>
+            <td>pattern</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>当 <code>type</code> 为 <code>REGEX</code> 或 <code>ASPECTJ</code> 时，指定正则表达式或 AspectJ 表达式。</td>
+        </tr>
+        <tr>
+            <td>filterClass</td>
+            <td>Class</td>
+            <td>null</td>
+            <td>当 <code>type</code> 为 <code>CUSTOM</code> 时，指定自定义过滤器类，该类需要实现 <code>TypeFilter</code> 接口。</td>
+        </tr>
+        <tr>
+            <td>matchIfMissing</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>指定当过滤器匹配的条件不满足时，是否将类视为匹配。通常用于自定义过滤器场景。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.ComponentScan;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.stereotype.Service;
+
+        @Configuration
+        @ComponentScan(basePackages = "com.example.demo",
+                includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Service.class),
+                excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "com.example.demo.excluded.*"))
+        public class AppConfig {
+            // 配置类其他内容
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.context.ApplicationContext;
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.stereotype.Service;
+
+        @Service
+        class MyService {
+            public void doSomething() {
+                System.out.println("Doing something...");
+            }
+        }
+
+        class ExcludedClass {
+            // 此类不会被扫描到 Spring 容器中
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                MyService myService = context.getBean(MyService.class);
+                myService.doSomething();
+
+                try {
+                    context.getBean(ExcludedClass.class);
+                } catch (Exception e) {
+                    System.out.println("ExcludedClass is not in the Spring container as expected.");
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动应用时，Spring 会扫描 <code>com.example.demo</code> 包及其子包下的类。</li>
+        <li>带有 <code>@Service</code> 注解的 <code>MyService</code> 类会被包含在扫描结果中，并注册到 Spring 容器中，调用 <code>doSomething</code> 方法会输出相应信息。</li>
+        <li>类名匹配 <code>com.example.demo.excluded.*</code> 正则表达式的 <code>ExcludedClass</code> 会被排除在扫描结果之外，尝试从 Spring 容器中获取该类的 Bean 会抛出异常。</li>
+    </ul>
+</div>
+
+</body>
+</html>

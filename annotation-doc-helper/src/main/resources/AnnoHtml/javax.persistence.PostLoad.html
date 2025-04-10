@@ -1,0 +1,289 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PostLoad</code> 是 Java Persistence API (JPA) 中的一个生命周期回调注解，用于标注在实体类的方法上。当实体从数据库加载后（包括通过查询、关联加载或 <code>EntityManager.find()</code> 方法获取时），JPA 会立即调用被该注解标注的方法。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据初始化：在实体加载后自动填充某些衍生属性。</li>
+        <li>缓存更新：同步数据库状态到应用缓存。</li>
+        <li>懒加载处理：初始化延迟加载的关联对象。</li>
+        <li>业务逻辑触发：在实体加载后执行特定业务操作。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 生命周期回调注解 (Lifecycle Callback)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager
+               ↓
+        PersistenceProvider
+               ↓
+        @PostLoad
+               ↓
+        Entity Initialization
+    </code></pre>
+    <p>当实体被加载到持久化上下文后，JPA 会触发 <code>@PostLoad</code> 方法，允许开发者在此时执行自定义逻辑。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Entity
+        public class Product {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private double price;
+            private double discount;
+
+            // 初始化计算字段
+            @PostLoad
+            public void calculateEffectivePrice() {
+                this.effectivePrice = price * (1 - discount);
+            }
+
+            // 其他属性和方法
+            private double effectivePrice;
+
+            public double getEffectivePrice() {
+                return effectivePrice;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>标注在实体类的方法上，方法必须满足以下条件：</li>
+        <ul>
+            <li>无参数</li>
+            <li>返回类型为 void</li>
+            <li>不能是静态方法</li>
+            <li>不能抛出 checked 异常</li>
+        </ul>
+        <li>支持继承：父类的 <code>@PostLoad</code> 方法会在子类方法之后执行</li>
+        <li>与 <code>@PreLoad</code> 配合使用时，<code>@PreLoad</code> 先于 <code>@PostLoad</code> 执行</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 扫描实体类时，识别所有标注 <code>@PostLoad</code> 的方法</li>
+                <li>将方法与实体类建立关联关系</li>
+            </ul>
+        </li>
+        <li><strong>事件触发阶段</strong>
+            <ul>
+                <li>当实体通过以下方式加载时触发：</li>
+                <ul>
+                    <li><code>EntityManager.find()</code></li>
+                    <li>JPQL 查询</li>
+                    <li>关联对象的级联加载</li>
+                </ul>
+                <li>JPA 在实体加载完成后调用 <code>@PostLoad</code> 方法</li>
+            </ul>
+        </li>
+        <li><strong>回调执行阶段</strong>
+            <ul>
+                <li>方法中可以访问实体的所有属性（包括延迟加载属性）</li>
+                <li>执行自定义逻辑，如计算衍生值、更新缓存等</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>计算衍生属性</td>
+            <td>在实体加载后动态计算无法存储在数据库的属性</td>
+            <td><pre><code>@Entity
+public class Order {
+    private double total;
+    private int quantity;
+
+    @PostLoad
+    public void calculateUnitPrice() {
+        this.unitPrice = total / quantity;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>解密敏感数据</td>
+            <td>在数据加载后自动解密存储的加密字段</td>
+            <td><pre><code>@Entity
+public class User {
+    private String encryptedPassword;
+
+    @PostLoad
+    public void decryptPassword() {
+        this.password = EncryptionUtil.decrypt(encryptedPassword);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>初始化复杂对象</td>
+            <td>在实体加载后初始化需要依赖其他服务的对象</td>
+            <td><pre><code>@Entity
+public class Product {
+    private String configData;
+    private Config config;
+
+    @PostLoad
+    public void initializeConfig() {
+        this.config = ConfigParser.parse(configData);
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+        java.util.Date;
+
+        @Entity
+        public class BlogPost {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String title;
+            private String content;
+            private Date publishedDate;
+            private boolean isPublished;
+
+            @PostLoad
+            public void updateStatus() {
+                if (publishedDate != null && publishedDate.before(new Date())) {
+                    this.isPublished = true;
+                } else {
+                    this.isPublished = false;
+                }
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            public void setTitle(String title) {
+                this.title = title;
+            }
+
+            public String getContent() {
+                return content;
+            }
+
+            public void setContent(String content) {
+                this.content = content;
+            }
+
+            public Date getPublishedDate() {
+                return publishedDate;
+            }
+
+            public void setPublishedDate(Date publishedDate) {
+                this.publishedDate = publishedDate;
+            }
+
+            public boolean isPublished() {
+                return isPublished;
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    // 创建未发布的博客文章
+                    BlogPost post = new BlogPost();
+                    post.setTitle("JPA Lifecycle Events");
+                    post.setContent("Understanding @PostLoad");
+                    em.persist(post);
+
+                    em.getTransaction().commit();
+
+                    // 查询文章
+                    BlogPost retrievedPost = em.find(BlogPost.class, post.getId());
+                    System.out.println("Is Published: " + retrievedPost.isPublished());
+
+                    // 设置发布时间为过去
+                    em.getTransaction().begin();
+                    retrievedPost.setPublishedDate(new Date(System.currentTimeMillis() - 86400000));
+                    em.merge(retrievedPost);
+                    em.getTransaction().commit();
+
+                    // 重新加载后检查状态
+                    BlogPost updatedPost = em.find(BlogPost.class, post.getId());
+                    System.out.println("Is Published Now: " + updatedPost.isPublished());
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>首次加载未设置发布时间的文章时，<code>isPublished</code> 为 <code>false</code></li>
+        <li>设置发布时间为过去后，<code>@PostLoad</code> 方法自动更新状态为 <code>true</code></li>
+        <li>输出显示状态自动维护，无需手动计算</li>
+    </ul>
+</div>
+
+</body>
+</html>

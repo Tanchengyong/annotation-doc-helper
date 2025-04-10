@@ -1,0 +1,221 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Value</code> 是 Spring 框架中的一个注解，用于将外部配置的值注入到 Bean 的字段、方法参数或构造函数参数中。
+        它可以从属性文件、环境变量、命令行参数等多种来源获取值，并将其赋值给对应的变量。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>配置注入：方便地将配置信息注入到 Spring Bean 中，避免硬编码配置值。</li>
+        <li>灵活性：支持多种配置源，如属性文件、系统属性、环境变量等，提高了配置的灵活性。</li>
+        <li>动态配置：在运行时可以根据不同的环境动态加载配置值，便于应用的部署和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 依赖注入注解 (Dependency Injection Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        PropertySourcesPlaceholderConfigurer
+               ↓
+        @Value
+               ↓
+        BeanFactory
+    </code></pre>
+    <p>Spring 通过 <code>PropertySourcesPlaceholderConfigurer</code> 来处理属性占位符，解析配置文件中的属性值。
+        <code>@Value</code> 注解使用这些解析后的属性值进行注入。<code>BeanFactory</code> 负责创建和管理 Bean 实例，
+        在创建 Bean 时会处理 <code>@Value</code> 注解的注入操作。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.beans.factory.annotation.Value;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        public class MyConfig {
+            @Value("${app.name}")
+            private String appName;
+
+            @Value("${app.version:1.0}")
+            private String appVersion;
+
+            public String getAppName() {
+                return appName;
+            }
+
+            public String getAppVersion() {
+                return appVersion;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>可以作用于字段、方法参数和构造函数参数。</li>
+        <li>使用占位符 <code>${...}</code> 来引用配置属性，占位符内可以指定默认值，格式为 <code>${property.name:defaultValue}</code>。</li>
+        <li>需要确保 <code>PropertySourcesPlaceholderConfigurer</code> 或其替代者（如 <code>@ConfigurationProperties</code>）
+            在 Spring 配置中正确配置，以便解析属性占位符。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置加载阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，会加载配置文件（如 <code>application.properties</code> 或 <code>application.yml</code>），
+                    并将其中的属性值存储在 <code>PropertySources</code> 中。</li>
+            </ul>
+        </li>
+        <li><strong>占位符解析阶段</strong>
+            <ul>
+                <li><code>PropertySourcesPlaceholderConfigurer</code> 会遍历所有的 Bean 定义，查找带有 <code>@Value</code> 注解的字段、
+                    方法参数或构造函数参数。</li>
+                <li>对于每个占位符 <code>${...}</code>，会在 <code>PropertySources</code> 中查找对应的属性值。如果找到，则将占位符
+                    替换为该属性值；如果未找到且指定了默认值，则使用默认值；如果未找到且未指定默认值，则抛出异常。</li>
+            </ul>
+        </li>
+        <li><strong>注入阶段</strong>
+            <ul>
+                <li>在创建 Bean 实例时，Spring 会将解析后的属性值注入到带有 <code>@Value</code> 注解的字段、方法参数或构造函数参数中。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>注入属性文件中的值</td>
+            <td>使用 <code>@Value</code> 注解结合占位符引用属性文件中的配置值。</td>
+            <td><pre><code>@Component
+public class DatabaseConfig {
+    @Value("${db.url}")
+    private String dbUrl;
+
+    @Value("${db.username}")
+    private String dbUsername;
+
+    @Value("${db.password}")
+    private String dbPassword;
+
+    // getters and setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>注入默认值</td>
+            <td>在占位符中指定默认值，当配置文件中未定义该属性时使用默认值。</td>
+            <td><pre><code>@Component
+public class AppSettings {
+    @Value("${app.timeout:5000}")
+    private int timeout;
+
+    // getter
+    public int getTimeout() {
+        return timeout;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>注入表达式结果</td>
+            <td>使用 SpEL（Spring Expression Language）表达式在 <code>@Value</code> 注解中进行动态计算。</td>
+            <td><pre><code>@Component
+public class MathUtils {
+    @Value("#{2 + 3}")
+    private int sum;
+
+    // getter
+    public int getSum() {
+        return sum;
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定要注入的值，可以是属性占位符（如 <code>${property.name}</code>）或 SpEL 表达式（如 <code>#{expression}</code>）。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.beans.factory.annotation.Value;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        public class MyApp {
+            @Value("${app.title}")
+            private String appTitle;
+
+            @Value("${app.description:No description available}")
+            private String appDescription;
+
+            public void printAppInfo() {
+                System.out.println("App Title: " + appTitle);
+                System.out.println("App Description: " + appDescription);
+            }
+        }
+
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.ComponentScan;
+        import org.springframework.context.annotation.PropertySource;
+
+        @ComponentScan(basePackages = "com.example")
+        @PropertySource("classpath:application.properties")
+        public class AppConfig {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                MyApp myApp = context.getBean(MyApp.class);
+                myApp.printAppInfo();
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>假设 <code>application.properties</code> 文件内容如下：
+            <pre>
+                app.title=My Awesome App
+            </pre>
+        </li>
+        <li>运行 <code>AppConfig</code> 类的 <code>main</code> 方法，输出结果：
+            <pre>
+                App Title: My Awesome App
+                App Description: No description available
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

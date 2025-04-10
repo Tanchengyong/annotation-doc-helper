@@ -1,0 +1,214 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Aspect</code> 是 AspectJ 框架中的一个注解，用于将一个普通的 Java 类标识为切面类。切面类是 AOP（面向切面编程）中的核心概念，它封装了横切关注点的逻辑，如日志记录、事务管理、权限验证等。这些横切关注点会跨越多个业务模块，使用 AOP 可以将这些逻辑从业务逻辑中分离出来，提高代码的可维护性和可复用性。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>分离横切关注点：将与业务核心逻辑无关但又需要在多个地方执行的功能（如日志、事务）封装在切面类中，避免代码重复。</li>
+        <li>增强代码可维护性：将横切逻辑集中管理，当需要修改这些逻辑时，只需在切面类中进行修改，而不需要在多个业务类中逐一修改。</li>
+        <li>提高代码可复用性：切面类中的逻辑可以被多个业务模块复用。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>AspectJ 注解 (AspectJ Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AspectJ Framework
+               ↓
+        @Aspect
+               ↓
+        Pointcut + Advice
+               ↓
+        Target Objects
+    </code></pre>
+    <p>在 AspectJ 中，<code>@Aspect</code> 注解的类会定义切入点（Pointcut）和通知（Advice）。切入点用于指定哪些连接点（程序执行过程中的特定位置，如方法调用、异常抛出等）会被增强，通知则定义了在这些连接点处执行的具体逻辑。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Before;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        @Aspect
+        public class LoggingAspect {
+
+            // 定义切入点
+            @Pointcut("execution(* com.example.service.*.*(..))")
+            public void serviceMethods() {}
+
+            // 定义前置通知
+            @Before("serviceMethods()")
+            public void beforeServiceMethod() {
+                System.out.println("Before service method execution");
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于类上，将类标记为切面类。</li>
+        <li>切面类中可以定义多个切入点和通知。</li>
+        <li>切入点和通知可以通过注解（如 <code>@Pointcut</code>、<code>@Before</code>、<code>@After</code> 等）进行定义。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>编译时织入</strong>
+            <ul>
+                <li>在编译阶段，AspectJ 编译器会对带有 <code>@Aspect</code> 注解的类进行处理，解析其中的切入点和通知。</li>
+                <li>根据切入点的定义，编译器会在目标类的字节码中插入通知代码，生成增强后的字节码文件。</li>
+            </ul>
+        </li>
+        <li><strong>运行时织入</strong>
+            <ul>
+                <li>在运行时，当程序执行到切入点所匹配的连接点时，会自动执行相应的通知逻辑。</li>
+                <li>通知可以在连接点之前（前置通知）、之后（后置通知）、异常抛出时（异常通知）等不同时机执行。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>日志记录</td>
+            <td>在方法执行前后记录日志，方便调试和监控。</td>
+            <td><pre><code>@Aspect
+public class LoggingAspect {
+    @Pointcut("execution(* com.example.service.*.*(..))")
+    public void serviceMethods() {}
+
+    @Before("serviceMethods()")
+    public void beforeServiceMethod() {
+        System.out.println("Method is about to execute");
+    }
+
+    @After("serviceMethods()")
+    public void afterServiceMethod() {
+        System.out.println("Method has executed");
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>事务管理</td>
+            <td>在方法执行前后进行事务的开启、提交或回滚操作。</td>
+            <td><pre><code>@Aspect
+public class TransactionAspect {
+    @Pointcut("execution(* com.example.dao.*.*(..))")
+    public void daoMethods() {}
+
+    @Before("daoMethods()")
+    public void startTransaction() {
+        // 开启事务的逻辑
+    }
+
+    @AfterReturning("daoMethods()")
+    public void commitTransaction() {
+        // 提交事务的逻辑
+    }
+
+    @AfterThrowing("daoMethods()")
+    public void rollbackTransaction() {
+        // 回滚事务的逻辑
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>权限验证</td>
+            <td>在方法执行前验证用户的权限，防止非法访问。</td>
+            <td><pre><code>@Aspect
+public class PermissionAspect {
+    @Pointcut("execution(* com.example.controller.*.*(..))")
+    public void controllerMethods() {}
+
+    @Before("controllerMethods()")
+    public void checkPermission() {
+        // 验证权限的逻辑
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Before;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        // 切面类
+        @Aspect
+        public class PerformanceAspect {
+
+            // 定义切入点，匹配所有 com.example.service 包下的方法
+            @Pointcut("execution(* com.example.service.*.*(..))")
+            public void serviceMethods() {}
+
+            // 前置通知，在方法执行前记录开始时间
+            @Before("serviceMethods()")
+            public void beforeServiceMethod() {
+                System.out.println("Method execution started at: " + System.currentTimeMillis());
+            }
+        }
+
+        // 目标类
+        package com.example.service;
+
+        public class UserService {
+            public void getUserInfo() {
+                System.out.println("Getting user information...");
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                UserService userService = new UserService();
+                userService.getUserInfo();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当调用 <code>UserService</code> 类的 <code>getUserInfo</code> 方法时，会先执行 <code>PerformanceAspect</code> 切面类中的前置通知，输出方法开始执行的时间。</li>
+        <li>然后执行 <code>getUserInfo</code> 方法的具体逻辑。</li>
+    </ul>
+</div>
+
+</body>
+</html>

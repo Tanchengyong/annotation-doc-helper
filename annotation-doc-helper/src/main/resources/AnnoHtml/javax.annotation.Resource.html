@@ -1,0 +1,189 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Resource</code> 是 Java EE 标准注解，用于实现依赖注入。它可以按名称或类型自动装配资源（如 Bean、EJB 等），支持字段、方法和构造函数注入。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>跨框架兼容：在 Spring、CDI 等容器中统一使用</li>
+        <li>双向匹配：优先按名称匹配，其次按类型</li>
+        <li>简化配置：减少 XML 配置中的显式依赖声明</li>
+        <li>生命周期支持：支持 JNDI 资源和 Bean 的注入</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>依赖注入注解 (Dependency Injection Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        CommonAnnotationBeanPostProcessor
+               ↓
+        ResourceInjector</code></pre>
+    <p>通过后置处理器实现自动装配逻辑</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+
+// 字段注入
+@Service
+public class UserService {
+    @Resource
+    private UserRepository userRepository;
+}
+
+// 方法注入
+@Service
+public class OrderService {
+    private OrderRepository orderRepository;
+
+    @Resource
+    public void setOrderRepository(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+}
+
+// 构造函数注入
+@Service
+public class PaymentService {
+    private final PaymentGateway paymentGateway;
+
+    @Resource
+    public PaymentService(PaymentGateway paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+}</code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>可应用于字段、方法、构造函数</li>
+        <li>默认按名称装配，未指定名称时使用字段名/方法名</li>
+        <li>Spring 环境下可与 @Autowired 混合使用</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>容器扫描带有 @Resource 的元素</li>
+                <li>提取 name 和 type 元数据</li>
+            </ul>
+        </li>
+        <li><strong>资源查找阶段</strong>
+            <ul>
+                <li>优先按 name 查找 JNDI 资源或 Bean</li>
+                <li>未找到时按 type 匹配</li>
+            </ul>
+        </li>
+        <li><strong>注入执行阶段</strong>
+            <ul>
+                <li>将匹配的资源注入到目标位置</li>
+                <li>处理循环依赖和依赖检查</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>单一类型依赖</td>
+            <td>直接按类型注入</td>
+            <td><pre><code>@Resource private DataSource dataSource;</code></pre></td>
+        </tr>
+        <tr>
+            <td>多候选依赖</td>
+            <td>指定名称明确注入</td>
+            <td><pre><code>@Resource(name="primaryCache") Cache cache;</code></pre></td>
+        </tr>
+        <tr>
+            <td>JNDI 资源注入</td>
+            <td>绑定 JNDI 名称</td>
+            <td><pre><code>@Resource(name="jdbc/MyDS") DataSource ds;</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定资源名称（Bean 名称或 JNDI 路径）</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>Class</td>
+            <td>Object.class</td>
+            <td>指定资源类型（用于类型匹配）</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+
+@Component("redisCache")
+class RedisCache implements Cache {
+    // 具体实现
+}
+
+@Component("ehcache")
+class Ehcache implements Cache {
+    // 具体实现
+}
+
+@Service
+class CacheService {
+    @Resource(name="ehcache")
+    private Cache cache;
+
+    public void save(String key, Object value) {
+        cache.put(key, value);
+    }
+}
+
+// 验证代码
+public class ResourceTest {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx =
+            new AnnotationConfigApplicationContext("com.example");
+
+        CacheService service = ctx.getBean(CacheService.class);
+        System.out.println("Cache type: " + service.cache.getClass().getName());
+    }
+}</code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>控制台输出 "Cache type: com.example.Ehcache"</li>
+        <li>成功注入指定名称的 Bean</li>
+    </ul>
+</div>
+
+</body>
+</html>

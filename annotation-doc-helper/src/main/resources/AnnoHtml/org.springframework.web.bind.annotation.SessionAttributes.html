@@ -1,0 +1,286 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@SessionAttributes</code> 是 Spring 框架中的注解，用于在控制器类级别指定哪些模型属性应该存储在 HTTP 会话中。它允许在多个请求之间共享模型数据，使得数据在整个会话期间都能被访问和使用，而不仅仅局限于单个请求。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>跨请求数据共享：在多个请求之间保持模型数据的状态，方便在不同的控制器方法中访问和操作这些数据。</li>
+        <li>简化数据传递：避免在每个请求中都手动传递数据，通过会话自动管理数据的存储和获取。</li>
+        <li>实现会话级别的业务逻辑：对于需要在多个步骤中完成的业务流程，如购物车、表单填写的多步骤提交等，可以使用会话属性来跟踪和管理数据。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        SessionAttributeStore
+               ↓
+        @SessionAttributes
+    </code></pre>
+    <p>当客户端发送请求到 <code>DispatcherServlet</code> 后，<code>DispatcherServlet</code> 会调用相应的控制器方法。在处理控制器方法时，Spring 会根据 <code>@SessionAttributes</code> 注解的配置，使用 <code>SessionAttributeStore</code> 来管理会话属性的存储和获取。当模型中包含 <code>@SessionAttributes</code> 注解指定的属性时，这些属性会被存储到会话中；在后续请求中，这些属性可以从会话中取出并重新添加到模型中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.ModelAttribute;
+        import org.springframework.web.bind.annotation.PostMapping;
+        import org.springframework.web.bind.annotation.SessionAttributes;
+        import org.springframework.web.bind.support.SessionStatus;
+
+        @Controller
+        @SessionAttributes("user")
+        public class UserController {
+
+            // 处理 GET 请求，显示表单页面
+            @GetMapping("/user/form")
+            public String showUserForm(Model model) {
+                model.addAttribute("user", new User());
+                return "user-form";
+            }
+
+            // 处理 POST 请求，保存用户信息到会话
+            @PostMapping("/user/save")
+            public String saveUser(@ModelAttribute("user") User user, Model model) {
+                // 模拟保存用户信息到会话
+                model.addAttribute("user", user);
+                return "redirect:/user/confirm";
+            }
+
+            // 处理确认页面请求
+            @GetMapping("/user/confirm")
+            public String confirmUser(@ModelAttribute("user") User user) {
+                // 显示用户信息供确认
+                return "user-confirm";
+            }
+
+            // 处理完成操作，清除会话属性
+            @GetMapping("/user/complete")
+            public String completeUser(SessionStatus status) {
+                status.setComplete();
+                return "redirect:/user/success";
+            }
+        }
+
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解只能用于控制器类上，不能用于方法上。</li>
+        <li>注解中需要指定要存储在会话中的模型属性名称，可以是一个或多个属性名。</li>
+        <li>在控制器方法中，使用 <code>Model</code> 对象添加或获取会话属性。当需要清除会话属性时，可以使用 <code>SessionStatus</code> 对象的 <code>setComplete()</code> 方法。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>属性存储阶段</strong>
+            <ul>
+                <li>当控制器方法执行时，如果向 <code>Model</code> 对象中添加了 <code>@SessionAttributes</code> 注解指定的属性，Spring 会将这些属性存储到 HTTP 会话中。</li>
+                <li>存储过程由 <code>SessionAttributeStore</code> 负责，它会将属性以键值对的形式存储在会话中，键为属性名，值为属性对象。</li>
+            </ul>
+        </li>
+        <li><strong>属性获取阶段</strong>
+            <ul>
+                <li>在后续的请求中，当调用控制器方法时，Spring 会检查会话中是否存在 <code>@SessionAttributes</code> 注解指定的属性。</li>
+                <li>如果存在，Spring 会将这些属性从会话中取出，并添加到当前请求的 <code>Model</code> 对象中，以便在控制器方法中使用。</li>
+            </ul>
+        </li>
+        <li><strong>属性清除阶段</strong>
+            <ul>
+                <li>当调用 <code>SessionStatus</code> 对象的 <code>setComplete()</code> 方法时，Spring 会清除会话中由 <code>@SessionAttributes</code> 注解管理的属性。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>多步骤表单提交</td>
+            <td>在多步骤表单提交过程中，使用 <code>@SessionAttributes</code> 存储每一步提交的数据，直到整个表单提交完成。</td>
+            <td><pre><code>@Controller
+@SessionAttributes({"step1Data", "step2Data"})
+public class MultiStepFormController {
+    @PostMapping("/form/step1")
+    public String processStep1(@ModelAttribute("step1Data") Step1Data step1Data, Model model) {...}
+    @PostMapping("/form/step2")
+    public String processStep2(@ModelAttribute("step2Data") Step2Data step2Data, Model model) {...}
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>购物车管理</td>
+            <td>在购物过程中，将会话属性用于存储用户添加到购物车的商品信息，方便在不同页面查看和操作购物车。</td>
+            <td><pre><code>@Controller
+@SessionAttributes("cart")
+public class ShoppingCartController {
+    @PostMapping("/cart/add")
+    public String addToCart(@ModelAttribute("cart") Cart cart, Product product) {...}
+    @GetMapping("/cart/view")
+    public String viewCart(@ModelAttribute("cart") Cart cart) {...}
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>用户登录状态管理</td>
+            <td>在用户登录后，将会话属性用于存储用户的登录信息，如用户 ID、用户名等，以便在整个会话期间验证用户身份。</td>
+            <td><pre><code>@Controller
+@SessionAttributes("userInfo")
+public class LoginController {
+    @PostMapping("/login")
+    public String login(@ModelAttribute("userInfo") UserInfo userInfo, Model model) {...}
+    @GetMapping("/dashboard")
+    public String showDashboard(@ModelAttribute("userInfo") UserInfo userInfo) {...}
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要存储在会话中的模型属性名称数组。这些属性会在控制器方法中将其添加到 <code>Model</code> 对象时，被自动存储到会话中。</td>
+        </tr>
+        <tr>
+            <td>types</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要存储在会话中的模型属性的类型数组。当向 <code>Model</code> 对象中添加指定类型的属性时，这些属性会被存储到会话中。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.ModelAttribute;
+        import org.springframework.web.bind.annotation.PostMapping;
+        import org.springframework.web.bind.annotation.SessionAttributes;
+        import org.springframework.web.bind.support.SessionStatus;
+
+        @Controller
+        @SessionAttributes("user")
+        public class UserController {
+
+            // 处理 GET 请求，显示表单页面
+            @GetMapping("/user/form")
+            public String showUserForm(Model model) {
+                model.addAttribute("user", new User());
+                return "user-form";
+            }
+
+            // 处理 POST 请求，保存用户信息到会话
+            @PostMapping("/user/save")
+            public String saveUser(@ModelAttribute("user") User user, Model model) {
+                // 模拟保存用户信息到会话
+                model.addAttribute("user", user);
+                return "redirect:/user/confirm";
+            }
+
+            // 处理确认页面请求
+            @GetMapping("/user/confirm")
+            public String confirmUser(@ModelAttribute("user") User user) {
+                // 显示用户信息供确认
+                return "user-confirm";
+            }
+
+            // 处理完成操作，清除会话属性
+            @GetMapping("/user/complete")
+            public String completeUser(SessionStatus status) {
+                status.setComplete();
+                return "redirect:/user/success";
+            }
+        }
+
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        // 验证代码
+        public class SessionAttributesTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当访问 <code>/user/form</code> 时，会创建一个新的 <code>User</code> 对象并添加到模型中，返回 <code>user-form</code> 视图。</li>
+        <li>提交表单到 <code>/user/save</code> 时，<code>User</code> 对象会被添加到模型中，由于 <code>@SessionAttributes("user")</code> 注解，该对象会被存储到会话中，然后重定向到 <code>/user/confirm</code>。</li>
+        <li>访问 <code>/user/confirm</code> 时，Spring 会从会话中取出 <code>User</code> 对象并添加到模型中，显示用户信息供确认。</li>
+        <li>访问 <code>/user/complete</code> 时，调用 <code>SessionStatus.setComplete()</code> 方法清除会话中的 <code>User</code> 对象，然后重定向到 <code>/user/success</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

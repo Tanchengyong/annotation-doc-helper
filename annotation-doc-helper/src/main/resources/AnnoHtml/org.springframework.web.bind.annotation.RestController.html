@@ -1,0 +1,171 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@RestController</code> 是 Spring MVC 的专用注解，用于构建 RESTful Web 服务，结合了 <code>@Controller</code> 和 <code>@ResponseBody</code> 的功能，所有方法返回值默认进行 HTTP 消息体序列化。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>REST 端点定义：声明 HTTP 资源操作端点</li>
+        <li>自动序列化：将返回值转换为 JSON/XML 格式响应</li>
+        <li>内容协商：支持基于 Accept 头的内容类型协商</li>
+        <li>状态码管理：配合 <code>@ResponseStatus</code> 控制 HTTP 状态</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>REST 控制器注解 (Web API Controller Annotation)</code></p>
+    <p><strong>元注解组成：</strong></p>
+    <pre><code>@Controller
+@ResponseBody
+  ↓
+@RestController</code></pre>
+    <p>专为构建现代化 Web API 设计的组合注解</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>@RestController
+@RequestMapping("/api/v1/users")
+public class UserApiController {
+
+    @GetMapping("/{userId}")
+    public User getUser(@PathVariable String userId) {
+        return userService.findUser(userId);
+    }
+}</code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须应用于类级别</li>
+        <li>推荐使用版本化 API 路径（如 /api/v1）</li>
+        <li>遵循 REST 资源命名规范</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <p>Spring MVC REST 请求处理流程：</p>
+    <ol>
+        <li><strong>请求路由</strong>
+            <ul>
+                <li><code>DispatcherServlet</code> 接收 HTTP 请求</li>
+                <li><code>RequestMappingHandlerMapping</code> 匹配处理方法</li>
+            </ul>
+        </li>
+        <li><strong>参数解析</strong>
+            <ul>
+                <li><code>HandlerMethodArgumentResolver</code> 处理参数绑定</li>
+                <li>支持 <code>@RequestBody</code>、<code>@PathVariable</code> 等注解</li>
+            </ul>
+        </li>
+        <li><strong>响应处理</strong>
+            <ul>
+                <li><code>HttpMessageConverter</code> 序列化返回值</li>
+                <li>自动处理 JSON（Jackson）/XML 等格式转换</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>移动端 API</td>
+            <td>提供 JSON 格式数据接口</td>
+            <td><pre><code>@GetMapping 返回 JSON 对象</code></pre></td>
+        </tr>
+        <tr>
+            <td>微服务通信</td>
+            <td>服务间 HTTP 调用端点</td>
+            <td><pre><code>@PostMapping 接收 application/json</code></pre></td>
+        </tr>
+        <tr>
+            <td>OpenAPI 文档</td>
+            <td>生成 Swagger 接口文档</td>
+            <td><pre><code>配合 springdoc-openapi 使用</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>继承自 <code>@Controller</code> 的 Bean 名称定义</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>@RestController
+@RequestMapping("/api/products")
+public class ProductApiController {
+
+    private final ProductService productService;
+
+    @Autowired
+    public ProductApiController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping
+    public ResponseEntity&lt;Page&lt;Product>> listProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page&lt;Product> products = productService.getProducts(page, size);
+        return ResponseEntity.ok()
+               .header("X-Total-Count", String.valueOf(products.getTotalElements()))
+               .body(products);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Product createProduct(@Valid @RequestBody ProductCreateRequest request) {
+        return productService.createProduct(request);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleProductNotFound(ProductNotFoundException ex) {
+        return new ErrorResponse("PRODUCT_NOT_FOUND", ex.getMessage());
+    }
+}</code></pre>
+    <p><strong>关键特性：</strong></p>
+    <ul>
+        <li>构造函数依赖注入</li>
+        <li>分页查询与自定义响应头</li>
+        <li>使用 DTO 模式进行请求/响应封装</li>
+        <li>全局异常处理与标准化错误响应</li>
+    </ul>
+</div>
+
+</body>
+</html>
+
+<!-- 变量说明：
+annoName = @RestController
+annoNamePackage = org.springframework.web.bind.annotation
+-->

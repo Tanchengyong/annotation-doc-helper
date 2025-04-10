@@ -1,0 +1,369 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.OneToOne</code> 是 JPA（Java Persistence API）中的注解，用于定义实体之间一对一的关联关系。在一对一关系中，一个实体实例与另一个实体实例存在唯一的对应关系，例如一个人对应一个身份证。该注解能让 JPA 在代码层面清晰表达这种关系，并在数据库操作中正确处理关联数据。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>关系映射：准确将实体间的一对一关系映射到数据库表结构，方便数据的持久化和查询操作。</li>
+        <li>简化开发：避免手动编写复杂的 SQL 语句来处理关联关系，减少开发工作量。</li>
+        <li>提高代码可读性：通过注解清晰展示实体间的关联关系，使代码更易理解和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体关联映射注解 (Entity Association Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @OneToOne
+               ↓
+        Database Foreign Key or Shared Primary Key Relationship
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责管理实体类的生命周期和与数据库的交互。<code>@OneToOne</code> 注解为 <code>Entity Manager</code> 提供实体间一对一关系的映射信息，<code>Entity Manager</code> 会根据这些信息在数据库表中使用外键或共享主键来维护实体间的关联。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.OneToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class Person {
+            @Id
+            private Long id;
+            private String name;
+
+            @OneToOne(mappedBy = "person", cascade = javax.persistence.CascadeType.ALL)
+            private IdentificationCard card;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public IdentificationCard getCard() {
+                return card;
+            }
+
+            public void setCard(IdentificationCard card) {
+                this.card = card;
+            }
+        }
+
+        @Entity
+        public class IdentificationCard {
+            @Id
+            private Long id;
+            private String cardNumber;
+
+            @OneToOne
+            @JoinColumn(name = "person_id")
+            private Person person;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getCardNumber() {
+                return cardNumber;
+            }
+
+            public void setCardNumber(String cardNumber) {
+                this.cardNumber = cardNumber;
+            }
+
+            public Person getPerson() {
+                return person;
+            }
+
+            public void setPerson(Person person) {
+                this.person = person;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>作用于实体类的属性上，该属性引用另一个实体类，且当前实体类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>在双向关联中，需要指定关系的拥有方和被拥有方。通常在非拥有方使用 <code>mappedBy</code> 属性来指定拥有方的关联属性名。</li>
+        <li>可以通过 <code>@JoinColumn</code> 注解指定外键列的名称，若使用共享主键，可通过其他方式配置。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，扫描带有 <code>@Entity</code> 和 <code>@OneToOne</code> 注解的实体类。</li>
+                <li>解析 <code>@OneToOne</code> 注解及其相关属性（如 <code>mappedBy</code>、<code>@JoinColumn</code>），确定实体间的一对一关系和关联方式（外键或共享主键）信息，并将这些信息存储在 JPA 元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，会根据元数据中的关系信息，处理关联数据。</li>
+                <li>例如，在保存一个 <code>Person</code> 实体时，若关联了一个 <code>IdentificationCard</code> 实体，会根据关联方式在数据库中正确保存关联信息；在查询 <code>Person</code> 实体时，会根据关联信息查询出对应的 <code>IdentificationCard</code> 实体。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>人与身份证的关系</td>
+            <td>一个人对应一个身份证，使用 <code>@OneToOne</code> 注解来映射这种关系。</td>
+            <td><pre><code>@Entity
+public class Person {
+    // ...
+    @OneToOne(mappedBy = "person", cascade = javax.persistence.CascadeType.ALL)
+    private IdentificationCard card;
+    // ...
+}
+
+@Entity
+public class IdentificationCard {
+    // ...
+    @OneToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>用户与用户详情的关系</td>
+            <td>一个用户对应一份用户详情信息，通过该注解实现这种一对一关联。</td>
+            <td><pre><code>@Entity
+public class User {
+    // ...
+    @OneToOne(mappedBy = "user", cascade = javax.persistence.CascadeType.ALL)
+    private UserDetail detail;
+    // ...
+}
+
+@Entity
+public class UserDetail {
+    // ...
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>订单与订单详情的关系</td>
+            <td>一个订单对应一份订单详情，使用 <code>@OneToOne</code> 注解处理这种关联。</td>
+            <td><pre><code>@Entity
+public class Order {
+    // ...
+    @OneToOne(mappedBy = "order", cascade = javax.persistence.CascadeType.ALL)
+    private OrderDetail detail;
+    // ...
+}
+
+@Entity
+public class OrderDetail {
+    // ...
+    @OneToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+    // ...
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>targetEntity</td>
+            <td>Class</td>
+            <td>根据属性的类型推断</td>
+            <td>指定关联的目标实体类。</td>
+        </tr>
+        <tr>
+            <td>cascade</td>
+            <td>CascadeType[]</td>
+            <td>{} (空数组)</td>
+            <td>指定级联操作类型，如级联保存、更新、删除等。</td>
+        </tr>
+        <tr>
+            <td>fetch</td>
+            <td>FetchType</td>
+            <td>FetchType.EAGER</td>
+            <td>指定关联实体的获取方式，有 <code>LAZY</code>（懒加载）和 <code>EAGER</code>（立即加载）两种。</td>
+        </tr>
+        <tr>
+            <td>mappedBy</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定关系的被拥有方，用于双向关联，值为拥有方实体类中关联属性的名称。</td>
+        </tr>
+        <tr>
+            <td>optional</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定关联是否可选，若为 <code>false</code>，表示关联的实体不能为空。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.OneToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class Company {
+            @Id
+            private Long id;
+            private String companyName;
+
+            @OneToOne(mappedBy = "company", cascade = javax.persistence.CascadeType.ALL)
+            private CompanyAddress address;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getCompanyName() {
+                return companyName;
+            }
+
+            public void setCompanyName(String companyName) {
+                this.companyName = companyName;
+            }
+
+            public CompanyAddress getAddress() {
+                return address;
+            }
+
+            public void setAddress(CompanyAddress address) {
+                this.address = address;
+            }
+        }
+
+        @Entity
+        public class CompanyAddress {
+            @Id
+            private Long id;
+            private String addressLine;
+
+            @OneToOne
+            @JoinColumn(name = "company_id")
+            private Company company;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getAddressLine() {
+                return addressLine;
+            }
+
+            public void setAddressLine(String addressLine) {
+                this.addressLine = addressLine;
+            }
+
+            public Company getCompany() {
+                return company;
+            }
+
+            public void setCompany(Company company) {
+                this.company = company;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Company company = new Company();
+                company.setId(1L);
+                company.setCompanyName("Example Company");
+
+                CompanyAddress address = new CompanyAddress();
+                address.setId(1L);
+                address.setAddressLine("123 Main St");
+
+                company.setAddress(address);
+                address.setCompany(company);
+
+                em.getTransaction().begin();
+                em.persist(company);
+                em.getTransaction().commit();
+
+                Company retrievedCompany = em.find(Company.class, 1L);
+                System.out.println("Company Name: " + retrievedCompany.getCompanyName());
+                System.out.println("Company Address: " + retrievedCompany.getAddress().getAddressLine());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@OneToOne</code> 注解和相关配置，在数据库中创建 <code>Company</code> 和 <code>CompanyAddress</code> 表，并在 <code>CompanyAddress</code> 表中设置外键列，插入相应的记录。</li>
+        <li>通过查询 <code>Company</code> 实体，可以获取与之关联的 <code>CompanyAddress</code> 实体信息，并打印出来。</li>
+    </ul>
+</div>
+
+</body>
+</html>

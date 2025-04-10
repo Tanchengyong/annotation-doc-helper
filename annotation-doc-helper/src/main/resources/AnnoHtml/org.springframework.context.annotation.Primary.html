@@ -1,0 +1,198 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+  <h2>&#x1F680 1. 定义与作用</h2>
+  <p><strong>技术定义：</strong></p>
+  <p><code>@Primary</code> 是 Spring 框架中的注解，用于在自动装配时，当存在多个候选 Bean 满足依赖注入的类型要求时，指定其中一个 Bean 作为首选 Bean。</p>
+
+  <p><strong>核心作用：</strong></p>
+  <ul>
+    <li>解决依赖注入的歧义性：当有多个相同类型的 Bean 时，通过标记 <code>@Primary</code> 来明确首选的注入对象。</li>
+    <li>简化配置：避免在每次注入时都使用 <code>@Qualifier</code> 来指定具体的 Bean。</li>
+  </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+  <h2>&#128204 2. 所属类别</h2>
+  <p><strong>类型：</strong> <code>依赖注入注解 (Dependency Injection Annotation)</code></p>
+  <p><strong>关联机制：</strong></p>
+  <pre><code>
+        AutowiredAnnotationBeanPostProcessor
+               ↓
+        BeanFactory
+    </code></pre>
+  <p>通过后置处理器和 Bean 工厂来处理注解，确定首选的注入 Bean。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+  <h2>&#127757 3. 使用位置</h2>
+  <p><strong>代码示例：</strong></p>
+  <pre><code>
+        // 定义接口
+        public interface DataService {
+            void processData();
+        }
+
+        // 实现类 1，标记为 @Primary
+        @Component
+        @Primary
+        public class MySQLDataService implements DataService {
+            @Override
+            public void processData() {
+                System.out.println("Processing data with MySQL");
+            }
+        }
+
+        // 实现类 2
+        @Component
+        public class OracleDataService implements DataService {
+            @Override
+            public void processData() {
+                System.out.println("Processing data with Oracle");
+            }
+        }
+
+        // 服务类，依赖注入 DataService
+        @Service
+        public class BusinessService {
+            private final DataService dataService;
+
+            @Autowired
+            public BusinessService(DataService dataService) {
+                this.dataService = dataService;
+            }
+
+            public void doBusiness() {
+                dataService.processData();
+            }
+        }
+    </code></pre>
+
+  <p><strong>应用规范：</strong></p>
+  <ul>
+    <li>可应用于使用 <code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code> 等注解标注的类上，也可用于 <code>@Bean</code> 方法上。</li>
+    <li>在同一类型的多个候选 Bean 中，只能有一个 Bean 被标记为 <code>@Primary</code>，否则仍会出现歧义。</li>
+  </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+  <h2>&#9881 4. 工作原理</h2>
+  <ol>
+    <li><strong>注解解析阶段</strong>
+      <ul>
+        <li>Spring 在启动时，会扫描带有 <code>@Primary</code> 注解的类或方法。</li>
+        <li>将标记了 <code>@Primary</code> 的 Bean 记录为首选 Bean。</li>
+      </ul>
+    </li>
+    <li><strong>依赖注入阶段</strong>
+      <ul>
+        <li>当进行自动装配时，Spring 会根据类型找到所有候选的 Bean。</li>
+        <li>如果存在标记了 <code>@Primary</code> 的 Bean，则优先选择该 Bean 进行注入。</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+  <h2>&#128161 5. 使用场景</h2>
+  <table>
+    <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+    <tr>
+      <td>多个数据源注入</td>
+      <td>通过 <code>@Primary</code> 指定默认的数据源 Bean 进行注入</td>
+      <td><pre><code>@Component @Primary public class PrimaryDataSource implements DataSource {...}</code></pre></td>
+    </tr>
+    <tr>
+      <td>多个消息队列实现注入</td>
+      <td>标记默认的消息队列实现为 <code>@Primary</code></td>
+      <td><pre><code>@Service @Primary public class KafkaMessageQueue implements MessageQueue {...}</code></pre></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+  <h2>&#128295 6. 参数详解</h2>
+  <table>
+    <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+    <tr>
+      <td>无</td>
+      <td>无</td>
+      <td>无</td>
+      <td><code>@Primary</code> 注解没有参数。</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+  <h2>&#128187 7. 完整示例</h2>
+  <pre><code>
+        // 定义接口
+        public interface PaymentGateway {
+            void processPayment();
+        }
+
+        // 实现类 1，标记为 @Primary
+        @Component
+        @Primary
+        public class PayPalPaymentGateway implements PaymentGateway {
+            @Override
+            public void processPayment() {
+                System.out.println("Processing payment with PayPal");
+            }
+        }
+
+        // 实现类 2
+        @Component
+        public class StripePaymentGateway implements PaymentGateway {
+            @Override
+            public void processPayment() {
+                System.out.println("Processing payment with Stripe");
+            }
+        }
+
+        // 服务类，依赖注入 PaymentGateway
+        @Service
+        public class PaymentService {
+            private final PaymentGateway paymentGateway;
+
+            @Autowired
+            public PaymentService(PaymentGateway paymentGateway) {
+                this.paymentGateway = paymentGateway;
+            }
+
+            public void makePayment() {
+                paymentGateway.processPayment();
+            }
+        }
+
+        // 验证代码
+        public class PrimaryTest {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext ctx =
+                        new AnnotationConfigApplicationContext("com.example");
+
+                PaymentService paymentService = ctx.getBean(PaymentService.class);
+                paymentService.makePayment();
+            }
+        }
+    </code></pre>
+  <p><strong>运行效果：</strong></p>
+  <ul>
+    <li>控制台输出 "Processing payment with PayPal"，表示成功注入了标记为 <code>@Primary</code> 的 Bean。</li>
+  </ul>
+</div>
+
+</body>
+</html>

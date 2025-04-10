@@ -1,0 +1,230 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.Table</code> 是 JPA（Java Persistence API）中的一个注解，用于将实体类映射到数据库中的表。
+        它可以指定表的名称、目录、架构等信息，使得 JPA 能够准确地将实体类的属性与数据库表的字段进行对应。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>表映射：明确指定实体类对应的数据库表，确保 JPA 能正确地在数据库中进行数据的读写操作。</li>
+        <li>灵活配置：允许开发者自定义表名、目录和架构，以适应不同的数据库命名规范和组织方式。</li>
+        <li>提高可读性和可维护性：通过注解清晰地表达实体类与数据库表的关系，使代码更易于理解和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体映射注解 (Entity Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @Table
+               ↓
+        Database Table
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责管理实体类的生命周期和与数据库的交互。<code>@Table</code> 注解为 <code>Entity Manager</code>
+        提供了实体类与数据库表的映射信息，使得 <code>Entity Manager</code> 能够准确地将实体类的操作转换为对数据库表的操作。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Table;
+
+        @Entity
+        @Table(name = "users", catalog = "my_catalog", schema = "my_schema")
+        public class User {
+            // 实体类属性和方法
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于实体类的声明上，且该类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>可以根据需要指定 <code>name</code>、<code>catalog</code> 和 <code>schema</code> 属性，若不指定，JPA 会使用默认规则生成相应信息。</li>
+        <li>确保数据库中存在对应的表，或者使用 JPA 的自动建表功能。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，会扫描带有 <code>@Entity</code> 和 <code>@Table</code> 注解的实体类。</li>
+                <li>解析 <code>@Table</code> 注解中的属性，如 <code>name</code>、<code>catalog</code> 和 <code>schema</code>，并将这些信息存储在 JPA 的元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，会根据元数据中的表映射信息，
+                    生成对应的 SQL 语句。</li>
+                <li>SQL 语句中的表名、目录和架构会使用 <code>@Table</code> 注解中指定的值，从而确保操作的是正确的数据库表。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>自定义表名</td>
+            <td>当数据库表名与实体类名不一致时，使用 <code>@Table</code> 注解的 <code>name</code> 属性指定表名。</td>
+            <td><pre><code>@Entity
+@Table(name = "products")
+public class ProductEntity {
+    // 实体类属性和方法
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>指定数据库目录</td>
+            <td>在多目录的数据库环境中，使用 <code>@Table</code> 注解的 <code>catalog</code> 属性指定表所在的目录。</td>
+            <td><pre><code>@Entity
+@Table(name = "orders", catalog = "sales_catalog")
+public class Order {
+    // 实体类属性和方法
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>指定数据库架构</td>
+            <td>在支持多架构的数据库中，使用 <code>@Table</code> 注解的 <code>schema</code> 属性指定表所在的架构。</td>
+            <td><pre><code>@Entity
+@Table(name = "customers", schema = "public")
+public class Customer {
+    // 实体类属性和方法
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>实体类的名称</td>
+            <td>指定实体类对应的数据库表的名称。</td>
+        </tr>
+        <tr>
+            <td>catalog</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定表所在的数据库目录。</td>
+        </tr>
+        <tr>
+            <td>schema</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定表所在的数据库架构。</td>
+        </tr>
+        <tr>
+            <td>uniqueConstraints</td>
+            <td>UniqueConstraint[]</td>
+            <td>{} (空数组)</td>
+            <td>指定表的唯一约束条件，可用于确保表中某些列的组合值是唯一的。</td>
+        </tr>
+        <tr>
+            <td>indexes</td>
+            <td>Index[]</td>
+            <td>{} (空数组)</td>
+            <td>指定表的索引信息，可提高数据库查询性能。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Table;
+        import javax.persistence.Id;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+
+        @Entity
+        @Table(name = "employees", catalog = "company", schema = "hr")
+        public class Employee {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private int age;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Employee employee = new Employee();
+                employee.setName("John Doe");
+                employee.setAge(30);
+
+                em.getTransaction().begin();
+                em.persist(employee);
+                em.getTransaction().commit();
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@Table</code> 注解的信息，将 <code>Employee</code> 实体类的对象
+            保存到 <code>company.hr.employees</code> 表中。</li>
+        <li>如果数据库中不存在该表，且 JPA 配置了自动建表功能，会自动创建相应的表。</li>
+    </ul>
+</div>
+
+</body>
+</html>

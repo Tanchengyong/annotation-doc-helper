@@ -1,0 +1,216 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@EnableScheduling</code> 是 Spring 框架里用于开启定时任务功能的注解。它通过在配置类上添加该注解，能够激活 Spring 的定时任务执行器，使得被 <code>@Scheduled</code> 注解标注的方法可以按照指定的时间规则自动执行。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>简化配置：无需复杂的 XML 配置，只需在配置类上添加 <code>@EnableScheduling</code> 注解，就可以快速开启定时任务功能，提高开发效率。</li>
+        <li>灵活调度：结合 <code>@Scheduled</code> 注解，可以使用多种时间表达式（如 cron 表达式、固定延迟、固定速率等）来精确控制任务的执行时间，满足不同的业务需求。</li>
+        <li>统一管理：将定时任务的配置和执行统一在 Spring 框架中，便于对定时任务进行集中管理和监控。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 定时任务启用注解 (Spring Scheduling Enable Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Spring Framework
+               ↓
+        @EnableScheduling
+               ↓
+        @Scheduled
+               ↓
+        Scheduled Tasks Execution
+    </code></pre>
+    <p>在 Spring 体系中，<code>@EnableScheduling</code> 注解用于激活 Spring 的定时任务调度器。而 <code>@Scheduled</code> 注解则用于标注需要定时执行的方法，这些方法会在 <code>@EnableScheduling</code> 开启的调度器管理下按照指定的时间规则执行。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.scheduling.annotation.EnableScheduling;
+        import org.springframework.scheduling.annotation.Scheduled;
+
+        @Configuration
+        @EnableScheduling
+        public class SchedulingConfig {
+
+            // 定义一个定时任务，每隔 5 秒执行一次
+            @Scheduled(fixedRate = 5000)
+            public void performTask() {
+                System.out.println("Task is being executed...");
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于 Spring 的配置类上，配置类需要使用 <code>@Configuration</code> 注解标注，以表明这是一个 Spring 配置类。</li>
+        <li>在开启 <code>@EnableScheduling</code> 后，需要在需要定时执行的方法上使用 <code>@Scheduled</code> 注解，并根据需求设置相应的时间参数（如 <code>fixedRate</code>、<code>fixedDelay</code>、<code>cron</code> 等）。</li>
+        <li>被 <code>@Scheduled</code> 注解标注的方法必须是无参数、无返回值（返回类型为 <code>void</code>）的方法。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置解析</strong>
+            <ul>
+                <li>当 Spring 容器启动时，会扫描带有 <code>@Configuration</code> 注解的配置类，并解析其中的 <code>@EnableScheduling</code> 注解。</li>
+                <li>Spring 会根据 <code>@EnableScheduling</code> 注解的配置，创建并初始化一个定时任务调度器。</li>
+            </ul>
+        </li>
+        <li><strong>任务注册</strong>
+            <ul>
+                <li>Spring 会继续扫描所有被 <code>@Scheduled</code> 注解标注的方法，并将这些方法封装成定时任务对象。</li>
+                <li>根据 <code>@Scheduled</code> 注解中指定的时间参数，将定时任务对象注册到定时任务调度器中。</li>
+            </ul>
+        </li>
+        <li><strong>任务执行</strong>
+            <ul>
+                <li>定时任务调度器会根据任务的时间规则，在合适的时间点触发相应的定时任务。</li>
+                <li>当任务触发时，调度器会调用被 <code>@Scheduled</code> 注解标注的方法，执行相应的业务逻辑。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据定时备份</td>
+            <td>每天凌晨 2 点对数据库进行备份。</td>
+            <td><pre><code>
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+
+@Configuration
+@EnableScheduling
+public class DataBackupConfig {
+
+    @Scheduled(cron = "0 0 2 * * ?")
+    public void backupData() {
+        System.out.println("Backing up data...");
+        // 具体的数据备份逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存定时刷新</td>
+            <td>每隔 30 分钟刷新一次缓存数据。</td>
+            <td><pre><code>
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+
+@Configuration
+@EnableScheduling
+public class CacheRefreshConfig {
+
+    @Scheduled(fixedRate = 1800000)
+    public void refreshCache() {
+        System.out.println("Refreshing cache...");
+        // 具体的缓存刷新逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>报表定时生成</td>
+            <td>每周一早上 8 点生成业务报表。</td>
+            <td><pre><code>
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+
+@Configuration
+@EnableScheduling
+public class ReportGenerationConfig {
+
+    @Scheduled(cron = "0 0 8 ? * MON")
+    public void generateReport() {
+        System.out.println("Generating report...");
+        // 具体的报表生成逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>无</td>
+            <td>无</td>
+            <td>无</td>
+            <td><code>@EnableScheduling</code> 注解本身不包含参数，它的主要作用是开启 Spring 的定时任务功能。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.scheduling.annotation.EnableScheduling;
+        import org.springframework.scheduling.annotation.Scheduled;
+
+        // 配置类
+        @Configuration
+        @EnableScheduling
+        public class AppConfig {
+
+            // 定义一个定时任务，每隔 10 秒执行一次
+            @Scheduled(fixedRate = 10000)
+            public void printMessage() {
+                System.out.println("This is a scheduled task.");
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                // 保持程序运行
+                try {
+                    Thread.sleep(Long.MAX_VALUE);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>程序启动后，每隔 10 秒会执行一次 <code>printMessage</code> 方法，输出 <code>This is a scheduled task.</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

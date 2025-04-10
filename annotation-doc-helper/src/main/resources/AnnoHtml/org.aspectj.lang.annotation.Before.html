@@ -1,0 +1,196 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Before</code> 是AspectJ框架中用于定义前置通知的核心注解。它通过切点表达式确定增强逻辑的触发时机，允许在目标方法执行前插入自定义逻辑，实现横切关注点的统一管理。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>日志记录：在方法执行前记录调用信息，辅助系统监控与调试</li>
+        <li>事务管理：为数据库操作准备事务上下文</li>
+        <li>缓存预热：提前加载高频数据到缓存</li>
+        <li>限流控制：执行流量阈值检查</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>AspectJ 通知注解</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AspectJ Weaver → @Aspect → Pointcut → @Before → Target Method
+    </code></pre>
+    <p>该注解必须与<code>@Aspect</code>配合使用，通过切点表达式确定增强范围，最终在目标方法执行前触发通知</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        @Aspect
+        public class SecurityAspect {
+
+            @Pointcut("execution(* com.example.security.service.*.*(..))")
+            private void serviceMethods() {}
+
+            @Before("serviceMethods()")
+            public void verifyAuthentication(JoinPoint joinPoint) {
+                String username = SecurityContextHolder.getUsername();
+                if (!isAdminRole(username)) {
+                    throw new AccessDeniedException("Admin privileges required");
+                }
+                System.out.printf("Method %s accessed by %s%n",
+                    joinPoint.getSignature().getName(), username);
+            }
+
+            private boolean isAdminRole(String username) {
+                // 实际权限验证逻辑
+                return false;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能标注在切面类的方法上</li>
+        <li>通知方法必须返回void</li>
+        <li>支持JoinPoint参数获取连接点信息</li>
+        <li>切点表达式支持逻辑组合（&&, ||, !）</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>织入阶段</strong>
+            <ul>
+                <li>编译时织入：通过ajc编译器修改字节码</li>
+                <li>类加载时织入：使用AspectJ LTW代理</li>
+                <li>运行时织入：通过Spring AOP动态代理</li>
+            </ul>
+        </li>
+        <li><strong>执行流程</strong>
+            <ul>
+                <li>1. 匹配切点表达式</li>
+                <li>2. 执行前置通知</li>
+                <li>3. 调用目标方法</li>
+                <li>4. 处理异常/返回值</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>参数校验</td>
+            <td>在支付接口前验证金额范围</td>
+            <td><pre><code>
+@Before("execution(* com.payment.service.*.*(Double))")
+public void validateAmount(JoinPoint jp) {
+    double amount = (Double) jp.getArgs()[0];
+    if (amount < 0 || amount > 10000) {
+        throw new IllegalArgumentException("Invalid amount");
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>资源预加载</td>
+            <td>在报表生成前加载基础数据</td>
+            <td><pre><code>
+@Before("execution(* com.report.service.generate*(..))")
+public void loadMasterData() {
+    CacheManager.getInstance().load("masterData");
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>审计日志</td>
+            <td>记录敏感操作的用户信息</td>
+            <td><pre><code>
+@Before("execution(* com.security.service.*.*(..)) && @annotation(NeedAudit)")
+public void logAuditEvent(JoinPoint jp) {
+    AuditLogger.log(jp.getSignature().getName(), SecurityContext.getUser());
+}
+</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>无</td>
+            <td>切点表达式或已定义的切点方法名<br>示例：<code>@Before("serviceMethods() && args(user,..)")</code></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 切面类
+        @Aspect
+        public class PerformanceMonitor {
+
+            @Pointcut("within(com.example.performance.service..*)")
+            private void serviceLayer() {}
+
+            @Before("serviceLayer()")
+            public void logMethodInvocation(JoinPoint joinPoint) {
+                System.out.printf("Method %s invoked at %s%n",
+                    joinPoint.getSignature().getName(),
+                    new SimpleDateFormat("HH:mm:ss").format(new Date()));
+            }
+        }
+
+        // 目标类
+        package com.example.performance.service;
+
+        public class OrderService {
+            public void processOrder(String orderId) {
+                System.out.printf("Processing order %s%n", orderId);
+            }
+        }
+
+        // 主程序
+        public class Application {
+            public static void main(String[] args) {
+                // 初始化Spring容器
+                AnnotationConfigApplicationContext context =
+                    new AnnotationConfigApplicationContext(AppConfig.class);
+
+                OrderService orderService = context.getBean(OrderService.class);
+                orderService.processOrder("1001");
+            }
+        }
+    </code></pre>
+    <p><strong>执行结果：</strong></p>
+    <pre>
+        Method processOrder invoked at 14:30:45
+        Processing order 1001
+    </pre>
+</div>
+
+</body>
+</html>

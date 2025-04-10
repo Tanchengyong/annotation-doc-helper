@@ -1,0 +1,263 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PropertySource</code> 是 Spring 框架中的注解，用于在基于 Java 配置的 Spring 应用里引入外部属性文件。这些属性文件（如 `.properties` 或 `.yml` 文件）可存储应用的配置信息，借助该注解能将这些配置信息加载到 Spring 环境中，方便在应用内使用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>配置分离：把应用的配置信息存于外部属性文件，而非硬编码在 Java 代码里，增强了配置的可维护性与灵活性。</li>
+        <li>多环境支持：可以针对不同的运行环境（像开发、测试、生产）创建不同的属性文件，通过加载相应的属性文件来实现多环境配置。</li>
+        <li>动态配置更新：在不修改 Java 代码的情况下，直接修改属性文件的内容就能更新应用的配置。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 注解 (Spring Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationConfigApplicationContext
+               ↓
+        PropertySourcesPlaceholderConfigurer
+               ↓
+        @PropertySource
+    </code></pre>
+    <p>当使用 <code>AnnotationConfigApplicationContext</code> 启动 Spring 应用时，<code>PropertySourcesPlaceholderConfigurer</code> 会处理带有 <code>@PropertySource</code> 注解的配置类。它会依据注解中指定的属性文件路径，加载这些属性文件，并将其中的属性信息添加到 Spring 环境的属性源中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.context.annotation.PropertySource;
+
+        @Configuration
+        @PropertySource("classpath:application.properties")
+        public class AppConfig {
+            // 可以添加其他 Java 配置
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于配置类上，被注解的类需要使用 <code>@Configuration</code> 注解。</li>
+        <li><code>@PropertySource</code> 注解的 <code>value</code> 属性（可简写）用于指定要引入的属性文件的路径，可以是类路径下的文件（使用 <code>classpath:</code> 前缀），也可以是文件系统中的文件（使用 <code>file:</code> 前缀）。</li>
+        <li>可以指定多个属性文件路径，用逗号分隔。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>AnnotationConfigApplicationContext</code> 会扫描带有 <code>@PropertySource</code> 注解的配置类。</li>
+                <li><code>PropertySourcesPlaceholderConfigurer</code> 会解析 <code>@PropertySource</code> 注解，获取注解中指定的属性文件路径。</li>
+            </ul>
+        </li>
+        <li><strong>属性文件加载阶段</strong>
+            <ul>
+                <li>根据获取的属性文件路径，Spring 会加载这些属性文件。</li>
+            </ul>
+        </li>
+        <li><strong>属性源添加阶段</strong>
+            <ul>
+                <li>将加载的属性文件中的属性信息封装成属性源，并添加到 Spring 环境的属性源集合中。</li>
+            </ul>
+        </li>
+        <li><strong>属性使用阶段</strong>
+            <ul>
+                <li>在应用中可以通过 <code>@Value</code> 注解或 <code>Environment</code> 对象来获取这些属性的值。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据库连接配置</td>
+            <td>将数据库连接的相关配置（如数据库 URL、用户名、密码等）存储在属性文件中，通过 <code>@PropertySource</code> 注解加载该文件，然后在配置类中使用这些属性来配置数据源。</td>
+            <td><pre><code>@Configuration
+@PropertySource("classpath:db.properties")
+public class DataSourceConfig {
+    @Value("${db.url}")
+    private String url;
+    @Value("${db.username}")
+    private String username;
+    @Value("${db.password}")
+    private String password;
+
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多环境配置</td>
+            <td>为不同的运行环境（如开发、测试、生产）创建不同的属性文件，在启动应用时根据环境变量或系统属性加载相应的属性文件。</td>
+            <td><pre><code>@Configuration
+@PropertySource({"classpath:application.properties", "classpath:application-${spring.profiles.active}.properties"})
+public class AppConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>第三方服务配置</td>
+            <td>当使用第三方服务（如短信服务、邮件服务等）时，将服务的配置信息（如 API 密钥、服务器地址等）存储在属性文件中，通过 <code>@PropertySource</code> 注解加载该文件并使用这些配置。</td>
+            <td><pre><code>@Configuration
+@PropertySource("classpath:thirdparty.properties")
+public class ThirdPartyServiceConfig {
+    @Value("${thirdparty.api.key}")
+    private String apiKey;
+    @Value("${thirdparty.server.url}")
+    private String serverUrl;
+
+    @Bean
+    public ThirdPartyService thirdPartyService() {
+        ThirdPartyService service = new ThirdPartyService();
+        service.setApiKey(apiKey);
+        service.setServerUrl(serverUrl);
+        return service;
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要引入的属性文件的路径，可以是类路径下的文件（使用 <code>classpath:</code> 前缀），也可以是文件系统中的文件（使用 <code>file:</code> 前缀）。可以指定多个路径，用逗号分隔。</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""</td>
+            <td>为属性源指定一个名称，方便在代码中引用。如果不指定，Spring 会根据属性文件的路径生成一个默认名称。</td>
+        </tr>
+        <tr>
+            <td>ignoreResourceNotFound</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>指定当属性文件不存在时是否忽略该错误。如果设置为 <code>true</code>，当文件不存在时不会抛出异常；如果设置为 <code>false</code>，则会抛出异常。</td>
+        </tr>
+        <tr>
+            <td>encoding</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定属性文件的编码格式，如 "UTF-8"。</td>
+        </tr>
+        <tr>
+            <td>factory</td>
+            <td>Class</td>
+            <td>org.springframework.core.env.PropertySourceFactory.class</td>
+            <td>指定用于创建属性源的工厂类。可以自定义工厂类来处理特殊格式的属性文件。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        <!-- application.properties -->
+        app.name=My Spring App
+        app.version=1.0
+
+        // AppConfig.java
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.context.annotation.PropertySource;
+        import org.springframework.beans.factory.annotation.Value;
+        import org.springframework.context.annotation.Bean;
+
+        @Configuration
+        @PropertySource("classpath:application.properties")
+        public class AppConfig {
+            @Value("${app.name}")
+            private String appName;
+            @Value("${app.version}")
+            private String appVersion;
+
+            @Bean
+            public AppInfo appInfo() {
+                AppInfo info = new AppInfo();
+                info.setName(appName);
+                info.setVersion(appVersion);
+                return info;
+            }
+        }
+
+        // AppInfo.java
+        public class AppInfo {
+            private String name;
+            private String version;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getVersion() {
+                return version;
+            }
+
+            public void setVersion(String version) {
+                this.version = version;
+            }
+        }
+
+        // Main.java
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                AppInfo appInfo = context.getBean(AppInfo.class);
+                System.out.println("App Name: " + appInfo.getName());
+                System.out.println("App Version: " + appInfo.getVersion());
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动应用时，Spring 容器会解析 <code>AppConfig</code> 配置类，处理其中的 <code>@PropertySource("classpath:application.properties")</code> 注解。</li>
+        <li>加载 <code>application.properties</code> 文件，将其中的属性信息添加到 Spring 环境的属性源中。</li>
+        <li>通过 <code>@Value</code> 注解将属性值注入到 <code>AppConfig</code> 类的字段中，并创建 <code>AppInfo</code> Bean。</li>
+        <li>从 Spring 容器中获取 <code>AppInfo</code> Bean 并打印应用的名称和版本信息。</li>
+        <li>最后关闭 Spring 容器。</li>
+    </ul>
+</div>
+
+</body>
+</html>

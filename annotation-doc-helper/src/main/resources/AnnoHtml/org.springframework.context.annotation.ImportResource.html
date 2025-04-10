@@ -1,0 +1,198 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ImportResource</code> 是 Spring 框架中的注解，用于在基于 Java 配置的 Spring 应用中引入 XML 配置文件。它允许开发者在使用 Java 注解进行配置的同时，还能复用现有的 XML 配置，实现两种配置方式的混合使用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>兼容旧有 XML 配置：在从基于 XML 配置的 Spring 应用向基于 Java 注解配置迁移的过程中，使用该注解可以逐步引入 Java 配置，同时保留和复用原有的 XML 配置，降低迁移成本。</li>
+        <li>灵活配置管理：对于一些复杂的配置，如 AOP 切面配置、事务管理配置等，使用 XML 配置可能更加直观和方便。通过 <code>@ImportResource</code> 注解，可以将这些 XML 配置集成到 Java 配置的应用中。</li>
+        <li>模块化配置：将不同功能模块的配置分别用 XML 和 Java 配置实现，然后通过 <code>@ImportResource</code> 注解在主配置类中引入这些配置，提高代码的可维护性和可扩展性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 注解 (Spring Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationConfigApplicationContext
+               ↓
+        ConfigurationClassParser
+               ↓
+        @ImportResource
+    </code></pre>
+    <p>当使用 <code>AnnotationConfigApplicationContext</code> 启动 Spring 应用时，<code>ConfigurationClassParser</code> 会解析带有 <code>@ImportResource</code> 注解的配置类。它会根据注解中指定的 XML 配置文件路径，加载并解析这些 XML 文件，将其中定义的 Bean 注册到 Spring 容器中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.context.annotation.ImportResource;
+
+        @Configuration
+        @ImportResource("classpath:applicationContext.xml")
+        public class AppConfig {
+            // 可以添加其他 Java 配置
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于配置类上，被注解的类需要使用 <code>@Configuration</code> 注解。</li>
+        <li><code>@ImportResource</code> 注解的 <code>locations</code> 属性（可简写）用于指定要引入的 XML 配置文件的路径，可以是类路径下的文件（使用 <code>classpath:</code> 前缀），也可以是文件系统中的文件（使用 <code>file:</code> 前缀）。</li>
+        <li>可以指定多个 XML 配置文件路径，用逗号分隔。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>AnnotationConfigApplicationContext</code> 会扫描带有 <code>@ImportResource</code> 注解的配置类。</li>
+                <li><code>ConfigurationClassParser</code> 会解析 <code>@ImportResource</code> 注解，获取注解中指定的 XML 配置文件路径。</li>
+            </ul>
+        </li>
+        <li><strong>XML 文件加载阶段</strong>
+            <ul>
+                <li>根据获取的 XML 配置文件路径，Spring 会加载这些 XML 文件。</li>
+            </ul>
+        </li>
+        <li><strong>XML 文件解析阶段</strong>
+            <ul>
+                <li>Spring 会使用 XML 解析器解析加载的 XML 文件，识别其中定义的 Bean 元素和其他配置信息。</li>
+            </ul>
+        </li>
+        <li><strong>Bean 注册阶段</strong>
+            <ul>
+                <li>将解析得到的 Bean 定义注册到 Spring 容器的 Bean 定义注册表中。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>旧项目迁移</td>
+            <td>在将旧的基于 XML 配置的 Spring 项目逐步迁移到基于 Java 注解配置的过程中，使用 <code>@ImportResource</code> 注解引入原有的 XML 配置，同时添加新的 Java 配置。</td>
+            <td><pre><code>@Configuration
+@ImportResource("classpath:old-config.xml")
+public class MigrationConfig {
+    // 新的 Java 配置
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>复杂配置集成</td>
+            <td>对于一些复杂的配置，如 AOP 切面配置、事务管理配置等，使用 XML 配置更加方便。通过 <code>@ImportResource</code> 注解将这些 XML 配置集成到 Java 配置的应用中。</td>
+            <td><pre><code>@Configuration
+@ImportResource("classpath:aop-config.xml")
+public class AppConfig {
+    // 其他 Java 配置
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>模块化配置管理</td>
+            <td>将不同功能模块的配置分别用 XML 和 Java 配置实现，然后在主配置类中使用 <code>@ImportResource</code> 注解引入这些配置。</td>
+            <td><pre><code>@Configuration
+@ImportResource({"classpath:module1-config.xml", "classpath:module2-config.xml"})
+public class MainAppConfig {
+    // 主配置类其他内容
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>locations</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要引入的 XML 配置文件的路径，可以是类路径下的文件（使用 <code>classpath:</code> 前缀），也可以是文件系统中的文件（使用 <code>file:</code> 前缀）。可以指定多个路径，用逗号分隔。</td>
+        </tr>
+        <tr>
+            <td>reader</td>
+            <td>Class</td>
+            <td>org.springframework.beans.factory.xml.XmlBeanDefinitionReader.class</td>
+            <td>指定用于解析 XML 配置文件的读取器类。一般情况下使用默认的 <code>XmlBeanDefinitionReader</code> 即可。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        <!-- applicationContext.xml -->
+        &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+        &lt;beans xmlns="http://www.springframework.org/schema/beans"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                   http://www.springframework.org/schema/beans/spring-beans.xsd"&gt;
+
+            &lt;bean id="myService" class="com.example.MyService"/&gt;
+        &lt;/beans&gt;
+
+        // MyService.java
+        package com.example;
+
+        public class MyService {
+            public void doSomething() {
+                System.out.println("Doing something...");
+            }
+        }
+
+        // AppConfig.java
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.context.annotation.ImportResource;
+
+        @Configuration
+        @ImportResource("classpath:applicationContext.xml")
+        public class AppConfig {
+            // 可以添加其他 Java 配置
+        }
+
+        // Main.java
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                com.example.MyService service = context.getBean("myService", com.example.MyService.class);
+                service.doSomething();
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动应用时，Spring 容器会解析 <code>AppConfig</code> 配置类，处理其中的 <code>@ImportResource("classpath:applicationContext.xml")</code> 注解。</li>
+        <li>加载并解析 <code>applicationContext.xml</code> 文件，将其中定义的 <code>myService</code> Bean 注册到 Spring 容器中。</li>
+        <li>从 Spring 容器中获取 <code>myService</code> Bean 并调用 <code>doSomething</code> 方法，会输出 "Doing something..."。</li>
+        <li>最后关闭 Spring 容器。</li>
+    </ul>
+</div>
+
+</body>
+</html>

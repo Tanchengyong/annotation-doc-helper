@@ -1,0 +1,227 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ResponseBody</code> 是 Spring 框架中的注解，用于将控制器方法的返回值直接作为 HTTP 响应体返回给客户端，而不是将其解析为视图名称去查找对应的视图进行渲染。它通常结合 Spring MVC 使用，在处理 RESTful 风格的接口时非常有用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>直接返回数据：允许控制器方法返回的数据直接作为响应内容发送给客户端，无需经过视图解析器。</li>
+        <li>支持多种数据格式：配合合适的消息转换器，可以将返回的 Java 对象转换为 JSON、XML 等常见的数据格式，方便客户端处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerAdapter
+               ↓
+        HttpMessageConverter
+    </code></pre>
+    <p>Spring 的 <code>DispatcherServlet</code> 接收客户端请求后，通过 <code>HandlerMapping</code> 找到匹配的控制器方法。<code>RequestMappingHandlerAdapter</code> 调用该方法，若方法使用了 <code>@ResponseBody</code> 注解，会借助 <code>HttpMessageConverter</code> 将方法返回值转换为合适的格式，作为响应体返回给客户端。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @Controller
+        public class MyController {
+
+            // 返回 JSON 格式的用户信息
+            @RequestMapping(value = "/user", method = RequestMethod.GET)
+            @ResponseBody
+            public User getUser() {
+                User user = new User();
+                user.setName("John");
+                user.setAge(30);
+                return user;
+            }
+
+            // 返回纯文本信息
+            @RequestMapping(value = "/message", method = RequestMethod.GET)
+            @ResponseBody
+            public String getMessage() {
+                return "This is a simple message.";
+            }
+        }
+
+        // 用户类
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解可用于控制器类的方法上。在 Spring 4.0 及以后的版本中，<code>@RestController</code> 注解相当于 <code>@Controller</code> 和 <code>@ResponseBody</code> 的组合，使用 <code>@RestController</code> 注解的类中的所有方法默认都具有 <code>@ResponseBody</code> 的效果。</li>
+        <li>确保项目中配置了合适的消息转换器，以便将返回的 Java 对象转换为客户端能接受的格式。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>请求处理阶段</strong>
+            <ul>
+                <li>客户端发送 HTTP 请求，<code>DispatcherServlet</code> 接收请求后，<code>HandlerMapping</code> 根据请求 URL 找到匹配的控制器方法。</li>
+            </ul>
+        </li>
+        <li><strong>方法调用阶段</strong>
+            <ul>
+                <li><code>RequestMappingHandlerAdapter</code> 调用控制器方法，执行方法中的业务逻辑。</li>
+                <li>检查方法是否使用了 <code>@ResponseBody</code> 注解，如果使用了，则不进行视图解析。</li>
+            </ul>
+        </li>
+        <li><strong>数据转换阶段</strong>
+            <ul>
+                <li>根据客户端请求的 <code>Accept</code> 头信息和项目中配置的消息转换器，选择合适的 <code>HttpMessageConverter</code>。</li>
+                <li><code>HttpMessageConverter</code> 将方法的返回值转换为客户端能接受的数据格式，如 JSON、XML 等。</li>
+            </ul>
+        </li>
+        <li><strong>响应返回阶段</strong>
+            <ul>
+                <li>将转换后的数据作为 HTTP 响应体，连同相应的 HTTP 状态码和响应头信息返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>RESTful API 开发</td>
+            <td>在开发 RESTful 风格的接口时，使用 <code>@ResponseBody</code> 注解将控制器方法返回的 Java 对象转换为 JSON 或 XML 格式，方便客户端调用。</td>
+            <td><pre><code>@RequestMapping(value = "/products", method = RequestMethod.GET)
+@ResponseBody
+public List&lt;Product&gt; getProducts() {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>返回纯文本信息</td>
+            <td>当需要返回简单的文本信息，如错误提示、状态信息等，可使用该注解直接返回字符串。</td>
+            <td><pre><code>@RequestMapping(value = "/status", method = RequestMethod.GET)
+@ResponseBody
+public String getStatus() {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>前后端分离开发</td>
+            <td>在前后端分离的项目中，后端控制器使用 <code>@ResponseBody</code> 注解返回数据，前端通过 AJAX 等方式获取数据并进行渲染。</td>
+            <td><pre><code>@RequestMapping(value = "/data", method = RequestMethod.GET)
+@ResponseBody
+public DataModel getData() {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <p><code>@ResponseBody</code> 注解没有参数。它只是一个标记注解，用于告知 Spring MVC 将方法返回值直接作为响应体处理。</p>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.web.bind.annotation.RequestMapping;
+        import org.springframework.web.bind.annotation.RequestMethod;
+        import org.springframework.web.bind.annotation.ResponseBody;
+
+        // 控制器类
+        @Controller
+        public class MyController {
+
+            // 返回 JSON 格式的用户信息
+            @RequestMapping(value = "/user", method = RequestMethod.GET)
+            @ResponseBody
+            public User getUser() {
+                User user = new User();
+                user.setName("John");
+                user.setAge(30);
+                return user;
+            }
+
+            // 返回纯文本信息
+            @RequestMapping(value = "/message", method = RequestMethod.GET)
+            @ResponseBody
+            public String getMessage() {
+                return "This is a simple message.";
+            }
+        }
+
+        // 用户类
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        // 验证代码
+        public class ResponseBodyTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>GET /user</code> 请求时，控制器方法返回一个 <code>User</code> 对象，Spring 会将其转换为 JSON 格式的响应体返回给客户端，如 <code>{"name": "John", "age": 30}</code>。</li>
+        <li>当发送 <code>GET /message</code> 请求时，控制器方法返回一个字符串，该字符串会直接作为响应体返回给客户端，显示为 <code>This is a simple message.</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

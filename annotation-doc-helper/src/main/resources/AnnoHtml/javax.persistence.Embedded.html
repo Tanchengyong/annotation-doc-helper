@@ -1,0 +1,389 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Embedded</code> 是 Java Persistence API (JPA) 中的一个注解，用于标记实体类中的一个属性，该属性的类型是一个被 <code>@Embeddable</code> 注解修饰的类。通过使用 <code>@Embedded</code> 注解，可以将一个可嵌入类的属性映射到宿主实体对应的数据库表中，而不需要为该可嵌入类创建单独的数据库表。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>实现对象组合：允许在实体类中包含其他可嵌入类的实例，从而实现对象的组合，提高代码的模块化和复用性。</li>
+        <li>简化数据库设计：避免为可嵌入类创建单独的表，减少数据库表的数量和表之间的关联，使数据库结构更加简洁。</li>
+        <li>方便数据管理：可以将相关的属性封装在可嵌入类中，统一管理和操作这些属性，提高代码的可读性和可维护性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 注解 (JPA Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity
+          ↓
+        @Embedded
+          ↓
+        @Embeddable Class
+          ↓
+        Database Table Columns
+    </code></pre>
+    <p>在 JPA 中，当一个实体类使用 <code>@Embedded</code> 注解标记一个属性时，JPA 会将该属性对应的可嵌入类的属性映射到宿主实体对应的数据库表的列中。例如，一个 <code>User</code> 实体类中使用 <code>@Embedded</code> 注解标记一个 <code>Address</code> 类型的属性，<code>Address</code> 类被 <code>@Embeddable</code> 注解修饰，那么 <code>Address</code> 类的属性会被映射到 <code>User</code> 实体对应的数据库表的列中。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+
+        @Embeddable
+        public class Address {
+            private String street;
+            private String city;
+            private String zipCode;
+
+            // 无参构造函数
+            public Address() {}
+
+            // Getters 和 Setters
+            public String getStreet() {
+                return street;
+            }
+
+            public void setStreet(String street) {
+                this.street = street;
+            }
+
+            public String getCity() {
+                return city;
+            }
+
+            public void setCity(String city) {
+                this.city = city;
+            }
+
+            public String getZipCode() {
+                return zipCode;
+            }
+
+            public void setZipCode(String zipCode) {
+                this.zipCode = zipCode;
+            }
+        }
+
+        @Entity
+        public class User {
+            @Id
+            private Long id;
+            private String name;
+            @Embedded
+            private Address address;
+
+            // 无参构造函数
+            public User() {}
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public Address getAddress() {
+                return address;
+            }
+
+            public void setAddress(Address address) {
+                this.address = address;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li><code>@Embedded</code> 注解必须用于实体类的属性上，该属性的类型必须是一个被 <code>@Embeddable</code> 注解修饰的类。</li>
+        <li>被 <code>@Embeddable</code> 注解修饰的类必须有无参构造函数（可以是默认的无参构造函数），以便 JPA 能够实例化该类。</li>
+        <li>可以使用 <code>@AttributeOverride</code> 注解来覆盖可嵌入类中属性的默认映射。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>在应用启动时，JPA 会扫描所有的实体类和可嵌入类，解析 <code>@Embedded</code> 注解和 <code>@Embeddable</code> 注解。</li>
+                <li>根据注解信息，JPA 会确定可嵌入类的属性与宿主实体对应的数据库表的列之间的映射关系。</li>
+            </ul>
+        </li>
+        <li><strong>对象 - 关系映射阶段</strong>
+            <ul>
+                <li>当创建实体类的实例并设置其包含的可嵌入类属性时，JPA 会将可嵌入类的属性值映射到宿主实体对应的数据库表的列中。</li>
+                <li>例如，当设置 <code>User</code> 实体的 <code>address</code> 属性时，<code>Address</code> 类的 <code>street</code>、<code>city</code> 和 <code>zipCode</code> 属性的值会被映射到 <code>User</code> 实体对应的数据库表的相应列中。</li>
+            </ul>
+        </li>
+        <li><strong>持久化操作阶段</strong>
+            <ul>
+                <li>开发者通过 <code>EntityManager</code> 调用持久化方法，如 <code>persist()</code> 保存实体对象、<code>merge()</code> 更新实体对象、<code>remove()</code> 删除实体对象、<code>find()</code> 查询实体对象等。</li>
+                <li><code>EntityManager</code> 会根据对象 - 关系映射信息，生成相应的 SQL 语句并执行，完成对数据库的操作。在这个过程中，可嵌入类的属性会被一并处理。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>地址信息管理</td>
+            <td>将地址信息封装在一个可嵌入类中，在多个实体类中复用该可嵌入类，避免重复定义地址相关的属性。</td>
+            <td><pre><code>@Embeddable
+public class Address {
+    private String street;
+    private String city;
+    private String zipCode;
+    // Getters 和 Setters
+}
+
+@Entity
+public class Customer {
+    @Id
+    private Long id;
+    private String name;
+    @Embedded
+    private Address billingAddress;
+    @Embedded
+    private Address shippingAddress;
+    // Getters 和 Setters
+}
+
+@Entity
+public class Supplier {
+    @Id
+    private Long id;
+    private String companyName;
+    @Embedded
+    private Address address;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>日期范围管理</td>
+            <td>将日期范围信息封装在一个可嵌入类中，在需要处理日期范围的实体类中使用该可嵌入类。</td>
+            <td><pre><code>import java.util.Date;
+
+@Embeddable
+public class DateRange {
+    private Date startDate;
+    private Date endDate;
+    // Getters 和 Setters
+}
+
+@Entity
+public class Event {
+    @Id
+    private Long id;
+    private String eventName;
+    @Embedded
+    private DateRange eventDateRange;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>联系人信息管理</td>
+            <td>将联系人信息封装在一个可嵌入类中，在不同的实体类中使用该可嵌入类来管理联系人信息。</td>
+            <td><pre><code>@Embeddable
+public class ContactInfo {
+    private String phoneNumber;
+    private String email;
+    // Getters 和 Setters
+}
+
+@Entity
+public class Employee {
+    @Id
+    private Long id;
+    private String employeeName;
+    @Embedded
+    private ContactInfo contactInfo;
+    // Getters 和 Setters
+}
+
+@Entity
+public class Client {
+    @Id
+    private Long id;
+    private String clientName;
+    @Embedded
+    private ContactInfo contactInfo;
+    // Getters 和 Setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+        import java.util.Date;
+
+        @Embeddable
+        public class Address {
+            private String street;
+            private String city;
+            private String zipCode;
+
+            public Address() {}
+
+            public Address(String street, String city, String zipCode) {
+                this.street = street;
+                this.city = city;
+                this.zipCode = zipCode;
+            }
+
+            // Getters 和 Setters
+            public String getStreet() {
+                return street;
+            }
+
+            public void setStreet(String street) {
+                this.street = street;
+            }
+
+            public String getCity() {
+                return city;
+            }
+
+            public void setCity(String city) {
+                this.city = city;
+            }
+
+            public String getZipCode() {
+                return zipCode;
+            }
+
+            public void setZipCode(String zipCode) {
+                this.zipCode = zipCode;
+            }
+        }
+
+        @Entity
+        public class User {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            @Embedded
+            private Address address;
+
+            public User() {}
+
+            public User(String name, Address address) {
+                this.name = name;
+                this.address = address;
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public Address getAddress() {
+                return address;
+            }
+
+            public void setAddress(Address address) {
+                this.address = address;
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    Address address = new Address("123 Main St", "Anytown", "12345");
+                    User user = new User("John Doe", address);
+
+                    em.persist(user);
+
+                    em.getTransaction().commit();
+
+                    User retrievedUser = em.find(User.class, user.getId());
+                    System.out.println("Retrieved user: " + retrievedUser.getName());
+                    System.out.println("Address: " + retrievedUser.getAddress().getStreet() + ", " +
+                            retrievedUser.getAddress().getCity() + ", " + retrievedUser.getAddress().getZipCode());
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>程序会创建一个新的 <code>User</code> 对象，并设置其 <code>address</code> 属性。</li>
+        <li>将 <code>User</code> 对象保存到数据库中，同时将 <code>Address</code> 类的属性值保存到 <code>User</code> 实体对应的数据库表的相应列中。</li>
+        <li>从数据库中查询该 <code>User</code> 对象，并打印其名称和地址信息。</li>
+        <li>整个过程通过 JPA 完成，开发者无需编写复杂的 SQL 语句。</li>
+    </ul>
+</div>
+
+</body>
+</html>

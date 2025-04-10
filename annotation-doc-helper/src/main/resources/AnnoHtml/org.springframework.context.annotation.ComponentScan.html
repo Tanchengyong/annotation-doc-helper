@@ -1,0 +1,218 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ComponentScan</code> 是 Spring 框架中的注解，主要用于自动扫描指定包及其子包下带有特定注解（如 <code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code> 等）的类，并将这些类注册为 Spring Bean，从而避免手动在配置文件中逐个定义 Bean。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>自动发现组件：通过指定扫描包路径，Spring 可以自动识别并注册符合条件的组件，减少手动配置的工作量。</li>
+        <li>模块化开发支持：在大型项目中，不同模块可以将自己的组件放在特定的包下，使用 <code>@ComponentScan</code> 进行扫描，提高代码的可维护性和可扩展性。</li>
+        <li>与其他注解协同工作：可以与 <code>@Configuration</code> 等注解配合使用，构建完整的 Spring 应用配置。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 注解 (Spring Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AnnotationConfigApplicationContext
+               ↓
+        ComponentScanAnnotationParser
+               ↓
+        @ComponentScan
+    </code></pre>
+    <p>当使用 <code>AnnotationConfigApplicationContext</code> 来加载 Spring 配置时，它会调用 <code>ComponentScanAnnotationParser</code> 来解析 <code>@ComponentScan</code> 注解。解析后，会根据注解中指定的包路径进行组件扫描，将符合条件的类注册为 Spring Bean。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.context.annotation.ComponentScan;
+        import org.springframework.context.annotation.Configuration;
+
+        @Configuration
+        @ComponentScan(basePackages = "com.example.myapp")
+        public class AppConfig {
+            // 配置类其他内容
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用于配置类上，配置类需要使用 <code>@Configuration</code> 注解。</li>
+        <li>通过 <code>basePackages</code> 或 <code>basePackageClasses</code> 属性指定要扫描的包路径或类所在的包路径。</li>
+        <li>可以使用 <code>includeFilters</code> 和 <code>excludeFilters</code> 属性对扫描的组件进行过滤，具体过滤规则使用 <code>@ComponentScan.Filter</code> 注解定义。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，会解析带有 <code>@ComponentScan</code> 注解的配置类。</li>
+                <li>提取注解中的 <code>basePackages</code>、<code>includeFilters</code>、<code>excludeFilters</code> 等属性信息。</li>
+            </ul>
+        </li>
+        <li><strong>扫描阶段</strong>
+            <ul>
+                <li>根据 <code>basePackages</code> 指定的包路径，Spring 会遍历这些包及其子包下的所有类。</li>
+            </ul>
+        </li>
+        <li><strong>过滤阶段</strong>
+            <ul>
+                <li>对于扫描到的每个类，会根据 <code>includeFilters</code> 和 <code>excludeFilters</code> 中的过滤规则进行判断。</li>
+                <li>只有符合包含规则且不符合排除规则的类才会被视为候选组件。</li>
+            </ul>
+        </li>
+        <li><strong>注册阶段</strong>
+            <ul>
+                <li>将候选组件注册为 Spring Bean，存储在 Spring 容器中，以便后续使用。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>快速搭建 Spring 应用</td>
+            <td>在小型项目中，使用 <code>@ComponentScan</code> 可以快速将项目中的组件注册到 Spring 容器中，无需手动配置每个 Bean。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example.simpleapp")
+public class SimpleAppConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>模块化开发</td>
+            <td>在大型项目中，不同模块有自己的组件包，通过在模块配置类中使用 <code>@ComponentScan</code> 扫描各自的包，实现模块的独立管理。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example.module1")
+public class Module1Config {
+    // 模块 1 配置类其他内容
+}
+
+@Configuration
+@ComponentScan(basePackages = "com.example.module2")
+public class Module2Config {
+    // 模块 2 配置类其他内容
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>排除特定组件</td>
+            <td>在某些情况下，可能需要排除某些组件的扫描，可以使用 <code>excludeFilters</code> 属性进行过滤。</td>
+            <td><pre><code>@Configuration
+@ComponentScan(basePackages = "com.example.app",
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = TestComponent.class))
+public class AppConfig {
+    // 配置类其他内容
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>basePackages</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要扫描的包路径。可以指定多个包路径，Spring 会扫描这些包及其子包下的类。</td>
+        </tr>
+        <tr>
+            <td>basePackageClasses</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要扫描的类所在的包路径。通过指定类，Spring 会扫描该类所在的包及其子包下的类。</td>
+        </tr>
+        <tr>
+            <td>includeFilters</td>
+            <td>ComponentScan.Filter[]</td>
+            <td>{}（空数组）</td>
+            <td>指定扫描时要包含的组件过滤规则，使用 <code>@ComponentScan.Filter</code> 注解定义。</td>
+        </tr>
+        <tr>
+            <td>excludeFilters</td>
+            <td>ComponentScan.Filter[]</td>
+            <td>{}（空数组）</td>
+            <td>指定扫描时要排除的组件过滤规则，使用 <code>@ComponentScan.Filter</code> 注解定义。</td>
+        </tr>
+        <tr>
+            <td>useDefaultFilters</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定是否使用默认的过滤规则。默认情况下，Spring 会扫描带有 <code>@Component</code>、<code>@Service</code>、<code>@Repository</code>、<code>@Controller</code> 等注解的类。如果设置为 <code>false</code>，则需要手动定义过滤规则。</td>
+        </tr>
+        <tr>
+            <td>lazyInit</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>指定是否对扫描到的 Bean 进行懒加载。如果设置为 <code>true</code>，则 Bean 在首次被使用时才会被创建。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.ComponentScan;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.stereotype.Service;
+
+        @Configuration
+        @ComponentScan(basePackages = "com.example.demo")
+        public class AppConfig {
+            // 配置类其他内容
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.context.ApplicationContext;
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.stereotype.Service;
+
+        @Service
+        class MyService {
+            public void doSomething() {
+                System.out.println("Doing something...");
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                MyService myService = context.getBean(MyService.class);
+                myService.doSomething();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动应用时，Spring 会扫描 <code>com.example.demo</code> 包及其子包下的类。</li>
+        <li>带有 <code>@Service</code> 注解的 <code>MyService</code> 类会被注册为 Spring Bean。</li>
+        <li>从 Spring 容器中获取 <code>MyService</code> Bean 并调用 <code>doSomething</code> 方法，会输出相应信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

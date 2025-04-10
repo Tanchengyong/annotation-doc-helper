@@ -1,0 +1,245 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ModelAttribute</code> 是 Spring 框架中的注解，主要用于在控制器方法的参数绑定和数据预处理方面。它可以将请求参数绑定到模型对象上，也可以将模型对象添加到请求的模型中，以便在视图中使用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据绑定：将 HTTP 请求中的参数绑定到 Java 对象的属性上，简化参数处理。</li>
+        <li>数据共享：将数据添加到模型中，使得数据可以在控制器方法和视图之间共享。</li>
+        <li>数据预处理：在控制器方法执行前对数据进行预处理，例如对表单数据进行验证和转换。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerAdapter
+               ↓
+        @ModelAttribute
+    </code></pre>
+    <p>当客户端发送请求到 <code>DispatcherServlet</code> 后，<code>DispatcherServlet</code> 会通过 <code>HandlerAdapter</code> 调用相应的控制器方法。在这个过程中，<code>HandlerAdapter</code> 会处理 <code>@ModelAttribute</code> 注解，完成数据绑定和模型数据的添加操作。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.ModelAttribute;
+        import org.springframework.web.bind.annotation.PostMapping;
+
+        @Controller
+        public class UserController {
+
+            // 在控制器方法执行前将数据添加到模型中
+            @ModelAttribute
+            public void addCommonAttributes(Model model) {
+                model.addAttribute("appName", "My Application");
+            }
+
+            // 处理 GET 请求，显示表单页面
+            @GetMapping("/user/form")
+            public String showUserForm(Model model) {
+                model.addAttribute("user", new User());
+                return "user-form";
+            }
+
+            // 处理 POST 请求，接收表单数据
+            @PostMapping("/user/save")
+            public String saveUser(@ModelAttribute("user") User user) {
+                // 模拟保存用户数据
+                System.out.println("Saving user: " + user.getName());
+                return "redirect:/user/success";
+            }
+        }
+
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解可以用于方法上，在控制器方法执行前将数据添加到模型中；也可以用于方法参数上，将请求参数绑定到模型对象上。</li>
+        <li>当用于方法上时，方法可以有 <code>Model</code> 类型的参数，用于向模型中添加数据。</li>
+        <li>当用于方法参数上时，需要指定模型对象的名称，以便将请求参数正确绑定到对象上。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>数据准备阶段</strong>
+            <ul>
+                <li>如果 <code>@ModelAttribute</code> 注解用于方法上，在控制器方法执行前，Spring 会调用该方法，并将 <code>Model</code> 对象作为参数传入。</li>
+                <li>方法中可以通过 <code>Model</code> 对象的 <code>addAttribute</code> 方法将数据添加到模型中。</li>
+            </ul>
+        </li>
+        <li><strong>数据绑定阶段</strong>
+            <ul>
+                <li>如果 <code>@ModelAttribute</code> 注解用于方法参数上，Spring 会从 HTTP 请求中提取参数，并将其绑定到模型对象的属性上。</li>
+                <li>绑定过程会根据请求参数的名称和模型对象的属性名进行匹配，使用 JavaBean 的属性访问器（getter 和 setter 方法）进行赋值。</li>
+            </ul>
+        </li>
+        <li><strong>方法执行阶段</strong>
+            <ul>
+                <li>完成数据准备和绑定后，Spring 会调用控制器方法，将绑定好的模型对象作为参数传入。</li>
+                <li>控制器方法可以使用模型对象进行业务逻辑处理，并将处理结果返回给视图。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>表单数据处理</td>
+            <td>在处理表单提交时，使用 <code>@ModelAttribute</code> 将表单数据绑定到 Java 对象上，方便进行数据处理和验证。</td>
+            <td><pre><code>@PostMapping("/form/submit")
+public String submitForm(@ModelAttribute("formData") FormData formData) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>全局数据共享</td>
+            <td>在控制器类中使用 <code>@ModelAttribute</code> 注解的方法，将一些全局数据添加到模型中，使得所有视图都可以访问这些数据。</td>
+            <td><pre><code>@ModelAttribute
+public void addGlobalData(Model model) {
+    model.addAttribute("globalData", "Some global data");
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据预处理</td>
+            <td>在控制器方法执行前，对数据进行预处理，例如对日期格式进行转换、对输入数据进行验证等。</td>
+            <td><pre><code>@ModelAttribute
+public void preprocessData(@RequestParam("date") String dateStr, Model model) {
+    // 日期格式转换
+    Date date = convertDate(dateStr);
+    model.addAttribute("date", date);
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定模型对象的名称。当用于方法参数上时，请求参数会根据该名称绑定到模型对象上；当用于方法上时，添加到模型中的数据会使用该名称。如果不指定，Spring 会根据模型对象的类型自动生成一个名称。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Controller;
+        import org.springframework.ui.Model;
+        import org.springframework.web.bind.annotation.GetMapping;
+        import org.springframework.web.bind.annotation.ModelAttribute;
+        import org.springframework.web.bind.annotation.PostMapping;
+
+        @Controller
+        public class UserController {
+
+            // 在控制器方法执行前将数据添加到模型中
+            @ModelAttribute
+            public void addCommonAttributes(Model model) {
+                model.addAttribute("appName", "My Application");
+            }
+
+            // 处理 GET 请求，显示表单页面
+            @GetMapping("/user/form")
+            public String showUserForm(Model model) {
+                model.addAttribute("user", new User());
+                return "user-form";
+            }
+
+            // 处理 POST 请求，接收表单数据
+            @PostMapping("/user/save")
+            public String saveUser(@ModelAttribute("user") User user) {
+                // 模拟保存用户数据
+                System.out.println("Saving user: " + user.getName());
+                return "redirect:/user/success";
+            }
+        }
+
+        class User {
+            private String name;
+            private int age;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        // 验证代码
+        public class ModelAttributeTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当访问 <code>/user/form</code> 时，<code>addCommonAttributes</code> 方法会将 <code>appName</code> 添加到模型中，同时在 <code>showUserForm</code> 方法中会将一个新的 <code>User</code> 对象添加到模型中，然后返回 <code>user-form</code> 视图。在视图中可以使用这些模型数据。</li>
+        <li>当提交表单到 <code>/user/save</code> 时，请求参数会被绑定到 <code>User</code> 对象上，<code>saveUser</code> 方法会处理该对象，并模拟保存用户数据，最后重定向到 <code>/user/success</code> 页面。</li>
+    </ul>
+</div>
+
+</body>
+</html>

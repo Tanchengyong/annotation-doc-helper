@@ -1,0 +1,261 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PostPersist</code> 是 Java Persistence API (JPA) 中的一个生命周期回调注解。它用于标注实体类中的方法，当实体对象被持久化到数据库之后，JPA 会立即调用被该注解标注的方法。这里的持久化操作通常是通过 <code>EntityManager.persist()</code> 方法触发的。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>日志记录：在实体成功保存到数据库后，记录相关的操作日志，比如记录创建时间、创建人等信息。</li>
+        <li>缓存更新：更新与该实体相关的缓存，保证缓存数据与数据库数据的一致性。</li>
+        <li>关联操作：执行与该实体持久化相关的其他操作，例如发送通知、触发工作流等。</li>
+        <li>数据初始化：对实体进行一些初始化操作，这些操作依赖于实体已经在数据库中有了对应的记录。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 生命周期回调注解 (Lifecycle Callback)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager
+               ↓
+        PersistenceProvider
+               ↓
+        @PostPersist
+               ↓
+        Entity Persisted in Database
+    </code></pre>
+    <p>当调用 <code>EntityManager.persist()</code> 方法将实体对象持久化到数据库时，JPA 会在持久化操作完成后触发 <code>@PostPersist</code> 注解标注的方法。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Entity
+        public class Employee {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+
+            @PostPersist
+            public void afterPersist() {
+                System.out.println("Employee with ID " + id + " has been successfully persisted.");
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解应标注在实体类的方法上，且方法需满足以下条件：</li>
+        <ul>
+            <li>方法不能有参数。</li>
+            <li>方法的返回类型必须为 <code>void</code>。</li>
+            <li>方法不能是静态方法。</li>
+            <li>方法不能抛出受检查异常（checked exception）。</li>
+        </ul>
+        <li>如果实体类有继承关系，父类中被 <code>@PostPersist</code> 标注的方法会在子类的相应方法之后执行。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 在启动时会扫描所有的实体类，识别其中被 <code>@PostPersist</code> 注解标注的方法。</li>
+                <li>将这些方法与对应的实体类建立关联关系。</li>
+            </ul>
+        </li>
+        <li><strong>持久化操作阶段</strong>
+            <ul>
+                <li>当开发者调用 <code>EntityManager.persist()</code> 方法将实体对象持久化到数据库时，JPA 会将实体对象的状态转换为持久化状态，并将其数据写入数据库。</li>
+            </ul>
+        </li>
+        <li><strong>回调触发阶段</strong>
+            <ul>
+                <li>在实体对象成功持久化到数据库之后，JPA 会触发与该实体类关联的 <code>@PostPersist</code> 方法。</li>
+                <li>执行该方法中的自定义逻辑。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>操作日志记录</td>
+            <td>在实体保存后记录操作日志，方便后续审计和追踪。</td>
+            <td><pre><code>@Entity
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String orderNumber;
+
+    @PostPersist
+    public void logOrderCreation() {
+        Logger.getLogger(Order.class.getName()).info("Order " + orderNumber + " has been created.");
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存更新</td>
+            <td>在实体保存后更新相关的缓存，保证缓存数据的及时性。</td>
+            <td><pre><code>@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String productName;
+
+    @PostPersist
+    public void updateProductCache() {
+        CacheManager.getInstance().putProduct(this);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>发送通知</td>
+            <td>在实体保存后发送通知给相关人员，例如订单创建成功后通知客户。</td>
+            <td><pre><code>@Entity
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String email;
+
+    @PostPersist
+    public void sendWelcomeEmail() {
+        EmailService.sendEmail(email, "Welcome to our service!");
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+        java.util.logging.Logger;
+
+        @Entity
+        public class Project {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String projectName;
+
+            @PostPersist
+            public void afterProjectCreation() {
+                Logger.getLogger(Project.class.getName()).info("Project " + projectName + " has been created with ID " + id);
+                // 模拟更新缓存
+                ProjectCache.updateCache(this);
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getProjectName() {
+                return projectName;
+            }
+
+            public void setProjectName(String projectName) {
+                this.projectName = projectName;
+            }
+        }
+
+        class ProjectCache {
+            public static void updateCache(Project project) {
+                System.out.println("Project cache updated with project: " + project.getProjectName());
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    Project project = new Project();
+                    project.setProjectName("New Project");
+                    em.persist(project);
+
+                    em.getTransaction().commit();
+
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当 <code>Project</code> 实体被持久化到数据库后，会输出日志信息，表明项目已创建。</li>
+        <li>同时会调用 <code>ProjectCache.updateCache()</code> 方法更新缓存，输出缓存更新的信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

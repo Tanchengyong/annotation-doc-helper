@@ -1,0 +1,314 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.Column</code> 是 JPA（Java Persistence API）中的注解，用于将实体类的属性映射到数据库表的列。
+        它能对实体属性与数据库列之间的映射关系进行细致配置，包括列名、数据类型、长度等。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>精确映射：明确指定实体属性对应数据库表的列，确保数据在实体对象和数据库记录之间准确传递。</li>
+        <li>灵活配置：可对列的各种属性进行配置，如列名、是否允许为空、是否唯一等，以满足不同的业务需求。</li>
+        <li>提高可维护性：通过注解清晰展示实体属性与数据库列的关系，使代码更易理解和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体映射注解 (Entity Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @Column
+               ↓
+        Database Table Column
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责实体类的生命周期管理和与数据库的交互。<code>@Column</code> 注解为 <code>Entity Manager</code>
+        提供实体属性与数据库列的映射信息，使 <code>Entity Manager</code> 能正确地将实体属性的值存储到数据库列中，
+        或从数据库列中读取数据赋值给实体属性。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Column;
+        import javax.persistence.Id;
+
+        @Entity
+        public class Book {
+            @Id
+            private Long id;
+
+            @Column(name = "book_title", length = 200, nullable = false)
+            private String title;
+
+            @Column(name = "book_author", length = 100)
+            private String author;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            public void setTitle(String title) {
+                this.title = title;
+            }
+
+            public String getAuthor() {
+                return author;
+            }
+
+            public void setAuthor(String author) {
+                this.author = author;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>作用于实体类的属性上，且该实体类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>根据实际需求合理配置注解的参数，如列名、长度、是否允许为空等。</li>
+        <li>若不指定某些参数，JPA 会使用默认值进行映射。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，扫描带有 <code>@Entity</code> 和 <code>@Column</code> 注解的实体类。</li>
+                <li>解析 <code>@Column</code> 注解中的参数，如列名、长度、是否允许为空等，将这些信息存储在 JPA 元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，根据元数据中的映射信息，
+                    生成对应的 SQL 语句。</li>
+                <li>在 SQL 语句中，使用 <code>@Column</code> 注解指定的列名和配置，确保数据能正确地在实体属性和数据库列之间传输。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>自定义列名</td>
+            <td>当实体属性名与数据库列名不一致时，使用 <code>@Column</code> 注解的 <code>name</code> 属性指定列名。</td>
+            <td><pre><code>@Entity
+public class Product {
+    @Column(name = "product_name")
+    private String name;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>限制列长度</td>
+            <td>为防止数据超长，使用 <code>@Column</code> 注解的 <code>length</code> 属性指定列的最大长度。</td>
+            <td><pre><code>@Entity
+public class User {
+    @Column(name = "user_email", length = 50)
+    private String email;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>设置列是否允许为空</td>
+            <td>使用 <code>@Column</code> 注解的 <code>nullable</code> 属性，控制列是否允许为空。</td>
+            <td><pre><code>@Entity
+public class Customer {
+    @Column(name = "customer_phone", nullable = false)
+    private String phone;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>设置列的唯一性</td>
+            <td>使用 <code>@Column</code> 注解的 <code>unique</code> 属性，确保列中的值唯一。</td>
+            <td><pre><code>@Entity
+public class Account {
+    @Column(name = "account_number", unique = true)
+    private String accountNumber;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>实体属性名</td>
+            <td>指定实体属性对应的数据库列名。</td>
+        </tr>
+        <tr>
+            <td>unique</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>设置该列的值是否唯一。</td>
+        </tr>
+        <tr>
+            <td>nullable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置该列是否允许为空。</td>
+        </tr>
+        <tr>
+            <td>insertable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置在插入操作时是否包含该列。</td>
+        </tr>
+        <tr>
+            <td>updatable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置在更新操作时是否更新该列。</td>
+        </tr>
+        <tr>
+            <td>columnDefinition</td>
+            <td>String</td>
+            <td>""</td>
+            <td>使用数据库特定的列定义。</td>
+        </tr>
+        <tr>
+            <td>table</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定该列所属的表名，当存在多个表映射时使用。</td>
+        </tr>
+        <tr>
+            <td>length</td>
+            <td>int</td>
+            <td>255</td>
+            <td>指定列的最大长度，适用于字符串类型的列。</td>
+        </tr>
+        <tr>
+            <td>precision</td>
+            <td>int</td>
+            <td>0</td>
+            <td>指定数值类型列的精度（总位数）。</td>
+        </tr>
+        <tr>
+            <td>scale</td>
+            <td>int</td>
+            <td>0</td>
+            <td>指定数值类型列的小数位数。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Column;
+        import javax.persistence.Id;
+
+        @Entity
+        public class Employee {
+            @Id
+            private Long id;
+
+            @Column(name = "employee_name", length = 100, nullable = false)
+            private String name;
+
+            @Column(name = "employee_salary", precision = 10, scale = 2)
+            private double salary;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public double getSalary() {
+                return salary;
+            }
+
+            public void setSalary(double salary) {
+                this.salary = salary;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Employee employee = new Employee();
+                employee.setId(1L);
+                employee.setName("John Doe");
+                employee.setSalary(5000.00);
+
+                em.getTransaction().begin();
+                em.persist(employee);
+                em.getTransaction().commit();
+
+                Employee retrievedEmployee = em.find(Employee.class, 1L);
+                System.out.println("Retrieved Employee Name: " + retrievedEmployee.getName());
+                System.out.println("Retrieved Employee Salary: " + retrievedEmployee.getSalary());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@Column</code> 注解的配置，
+            将 <code>Employee</code> 实体对象的属性值保存到数据库的相应列中。</li>
+        <li>通过主键值可以从数据库中检索到对应的实体对象，并打印出员工的姓名和工资。</li>
+    </ul>
+</div>
+
+</body>
+</html>

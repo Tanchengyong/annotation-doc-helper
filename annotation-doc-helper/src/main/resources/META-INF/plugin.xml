@@ -1,0 +1,24 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+
+    <idea-version since-build="211.6693.11" until-build="243.1559.34"/>
+    <id>com.tancy.plug.shouce-annotation-doc-helper</id>
+    <name>Annotation Doc Helper</name>
+    <version>1.0.0</version>
+    <vendor email="1977371754@qq.com" url="https://github.com/Tanchengyong/annotation-doc-helper">tancy</vendor>
+    <description>
+        Struggling to find annotation usage details while coding in IntelliJ IDEA? Introducing a powerful plugin to simplify your workflow! Double-click any annotation in your code to instantly reveal a pop-up window with comprehensive documentation, including usage examples and best practices. Gain instant access to critical details and supercharge your productivity—an essential tool for every developer.
+        在使用 IntelliJ IDEA 开发时，注解用法查询是否让你头疼？别担心，这款插件来助力！只需在代码里双击某个注解，就能立即弹出窗口，详细展示该注解的用法。快速获取关键信息，开发效率直线提升，是程序员不容错过的实用工具。
+    </description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity
+                implementation="com.tancy.plug.shouce.MouseListenerRegistration"/>
+    </extensions>
+
+
+</idea-plugin>

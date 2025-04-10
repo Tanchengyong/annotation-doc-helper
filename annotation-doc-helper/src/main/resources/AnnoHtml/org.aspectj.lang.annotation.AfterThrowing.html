@@ -1,0 +1,221 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@AfterThrowing</code> 是 AspectJ 框架中的注解，用于定义异常通知。当目标方法在执行过程中抛出异常时，该注解标注的通知方法会被触发执行。它允许开发者在目标方法抛出异常的情况下，执行一些通用的处理逻辑，如记录异常信息、进行资源回滚等。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>异常日志记录：将目标方法抛出的异常信息记录下来，便于后续的问题排查和系统监控。</li>
+        <li>资源清理：在异常发生时，对目标方法占用的资源进行清理，避免资源泄漏。</li>
+        <li>异常处理增强：对异常进行额外的处理，如转换异常类型、添加异常信息等，以便更好地进行异常传播和处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>AspectJ 通知注解 (AspectJ Advice Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AspectJ Framework
+               ↓
+        @Aspect
+               ↓
+        @AfterThrowing + Pointcut
+               ↓
+        Target Method Throws Exception
+    </code></pre>
+    <p>在 AspectJ 中，<code>@AfterThrowing</code> 注解通常与 <code>@Aspect</code> 注解配合使用，在切面类中定义异常通知。同时，需要结合切入点（Pointcut）来指定哪些目标方法会触发该异常通知。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.aspectj.lang.annotation.AfterThrowing;
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        @Aspect
+        public class FileProcessingAspect {
+
+            // 定义切入点，匹配所有 com.example.file.service 包下的方法
+            @Pointcut("execution(* com.example.file.service.*.*(..))")
+            public void fileServiceMethods() {}
+
+            // 定义异常通知
+            @AfterThrowing(pointcut = "fileServiceMethods()", throwing = "ex")
+            public void afterFileServiceMethodThrowing(Exception ex) {
+                System.err.println("File service method threw an exception: " + ex.getMessage());
+                // 可以添加更多的异常处理逻辑，如资源清理
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于切面类中的方法上，将该方法定义为异常通知。</li>
+        <li>异常通知方法不能有返回值（返回类型必须为 <code>void</code>）。</li>
+        <li>异常通知方法可以接受一个参数，该参数用于接收目标方法抛出的异常，参数名需要与 <code>@AfterThrowing</code> 注解的 <code>throwing</code> 属性值一致。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>编译时织入</strong>
+            <ul>
+                <li>在编译阶段，AspectJ 编译器会对带有 <code>@Aspect</code> 注解的类进行处理，解析其中的切入点和 <code>@AfterThrowing</code> 注解定义的异常通知。</li>
+                <li>根据切入点的定义，编译器会在目标类的字节码中插入异常通知代码，生成增强后的字节码文件。</li>
+            </ul>
+        </li>
+        <li><strong>运行时织入</strong>
+            <ul>
+                <li>在运行时，当程序执行到切入点所匹配的目标方法，且目标方法抛出异常时，会自动执行相应的异常通知逻辑。</li>
+                <li>异常通知会在目标方法抛出异常后立即执行，无论异常是否被捕获。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据库操作异常处理</td>
+            <td>在数据库操作方法抛出异常时，记录异常信息并进行事务回滚。</td>
+            <td><pre><code>@Aspect
+public class DatabaseAspect {
+    @Pointcut("execution(* com.example.db.service.*.*(..))")
+    public void dbServiceMethods() {}
+
+    @AfterThrowing(pointcut = "dbServiceMethods()", throwing = "ex")
+    public void afterDbServiceMethodThrowing(Exception ex) {
+        System.err.println("Database operation threw an exception: " + ex.getMessage());
+        // 事务回滚逻辑
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>网络请求异常处理</td>
+            <td>在网络请求方法抛出异常时，记录异常信息并进行重试或提示用户。</td>
+            <td><pre><code>@Aspect
+public class NetworkAspect {
+    @Pointcut("execution(* com.example.network.service.*.*(..))")
+    public void networkServiceMethods() {}
+
+    @AfterThrowing(pointcut = "networkServiceMethods()", throwing = "ex")
+    public void afterNetworkServiceMethodThrowing(Exception ex) {
+        System.err.println("Network request threw an exception: " + ex.getMessage());
+        // 重试或提示用户的逻辑
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>文件操作异常处理</td>
+            <td>在文件操作方法抛出异常时，记录异常信息并关闭文件资源。</td>
+            <td><pre><code>@Aspect
+public class FileAspect {
+    @Pointcut("execution(* com.example.file.service.*.*(..))")
+    public void fileServiceMethods() {}
+
+    @AfterThrowing(pointcut = "fileServiceMethods()", throwing = "ex")
+    public void afterFileServiceMethodThrowing(Exception ex) {
+        System.err.println("File operation threw an exception: " + ex.getMessage());
+        // 关闭文件资源的逻辑
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>pointcut</td>
+            <td>String</td>
+            <td>无</td>
+            <td>指定切入点表达式，用于确定哪些目标方法会触发该异常通知。可以是一个已定义的切入点方法名，也可以是直接的切入点表达式。</td>
+        </tr>
+        <tr>
+            <td>throwing</td>
+            <td>String</td>
+            <td>无</td>
+            <td>指定一个参数名，用于在异常通知方法中接收目标方法抛出的异常。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.aspectj.lang.annotation.AfterThrowing;
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        // 切面类
+        @Aspect
+        public class PaymentAspect {
+
+            // 定义切入点，匹配所有 com.example.payment.service 包下的方法
+            @Pointcut("execution(* com.example.payment.service.*.*(..))")
+            public void paymentServiceMethods() {}
+
+            // 异常通知，记录支付服务方法抛出的异常
+            @AfterThrowing(pointcut = "paymentServiceMethods()", throwing = "ex")
+            public void afterPaymentServiceMethodThrowing(Exception ex) {
+                System.err.println("Payment service method threw an exception: " + ex.getMessage());
+                // 可以添加退款、通知用户等异常处理逻辑
+            }
+        }
+
+        // 目标类
+        package com.example.payment.service;
+
+        public class PaymentService {
+            public void processPayment(double amount) throws Exception {
+                if (amount <= 0) {
+                    throw new IllegalArgumentException("Payment amount must be greater than 0");
+                }
+                // 模拟支付处理
+                System.out.println("Processing payment of " + amount);
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                PaymentService paymentService = new PaymentService();
+                try {
+                    paymentService.processPayment(-10);
+                } catch (Exception e) {
+                    // 异常会在切面中处理，这里只是捕获避免程序崩溃
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当调用 <code>PaymentService</code> 类的 <code>processPayment</code> 方法，传入非法金额时，方法会抛出异常。</li>
+        <li>异常抛出后，会执行 <code>PaymentAspect</code> 切面类中的异常通知，输出支付服务方法抛出的异常信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@ConfigDataImport</code> 是 Spring Boot 用于显式导入外部配置数据的注解，用于指定配置文件的加载位置和顺序。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>显式配置加载：强制加载指定位置的配置文件</li>
+        <li>测试专用：在测试环境中覆盖默认配置</li>
+        <li>优先级控制：通过参数调整配置加载顺序</li>
+        <li>多格式支持：支持 YAML、Properties 等格式</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>配置处理注解 (Configuration Processing Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        ConfigDataEnvironmentPostProcessor
+               ↓
+        ConfigDataLocationResolver
+               ↓
+        ConfigDataLoader</code></pre>
+    <p>通过环境后处理器和加载器实现配置加载</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+
+// 测试类级别配置
+@ConfigDataImport("classpath:/test-config.properties")
+@SpringBootTest
+class MyServiceTest {
+    @Autowired
+    private MyService service;
+
+    @Test
+    void test() {
+        // 使用测试配置执行验证
+    }
+}
+
+// 方法级别配置
+@Configuration
+public class DatabaseConfig {
+    @Bean
+    @ConfigDataImport("file:/var/config/database.yml")
+    public DataSource dataSource() {
+        return new HikariDataSource();
+    }
+}</code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>主要用于测试类和 @Bean 方法</li>
+        <li>类级别注解影响整个测试上下文</li>
+        <li>方法注解仅影响当前 Bean 的配置</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置定位阶段</strong>
+            <ul>
+                <li>解析 @ConfigDataImport 指定的资源路径</li>
+                <li>支持文件系统、类路径等多种位置</li>
+            </ul>
+        </li>
+        <li><strong>加载与合并阶段</strong>
+            <ul>
+                <li>使用对应格式的加载器读取配置</li>
+                <li>合并到 Spring Environment</li>
+            </ul>
+        </li>
+        <li><strong>优先级处理阶段</strong>
+            <ul>
+                <li>按参数指定顺序覆盖配置</li>
+                <li>测试配置优先级高于生产配置</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>测试环境配置</td>
+            <td>为测试类指定专用配置</td>
+            <td><pre><code>@ConfigDataImport("classpath:/test.properties")</code></pre></td>
+        </tr>
+        <tr>
+            <td>动态配置加载</td>
+            <td>在 Bean 初始化时加载外部配置</td>
+            <td><pre><code>@Bean @ConfigDataImport("file:/config/db.yml") DataSource ds</code></pre></td>
+        </tr>
+        <tr>
+            <td>配置覆盖</td>
+            <td>强制覆盖默认配置值</td>
+            <td><pre><code>@ConfigDataImport("classpath:/override-config.yml")</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String[]</td>
+            <td>[]</td>
+            <td>配置源位置（支持通配符和占位符）</td>
+        </tr>
+        <tr>
+            <td>order</td>
+            <td>int</td>
+            <td>0</td>
+            <td>加载顺序（数值越小优先级越高）</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""</td>
+            <td>配置源名称（用于日志标识）</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>@ConfigDataImport({
+    "classpath:/default-settings.properties",
+    "file:./test-config-${spring.profiles.active}.yml"
+})
+@SpringBootTest(classes = {AppConfig.class})
+class ApplicationTests {
+
+    @Value("${server.port}")
+    private int port;
+
+    @Test
+    void contextLoads() {
+        System.out.println("Test port: " + port);
+    }
+}
+
+// test-config-dev.yml
+server:
+  port: 8081
+
+// test-config-prod.yml
+server:
+  port: 8443</code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>开发环境加载 port=8081</li>
+        <li>生产环境加载 port=8443</li>
+        <li>默认配置会被测试配置覆盖</li>
+    </ul>
+</div>
+
+</body>
+</html>

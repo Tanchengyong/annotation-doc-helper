@@ -1,0 +1,172 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Inherited</code> 是 Java 语言中的元注解，用于声明自定义注解可以被子类继承。当父类使用该注解时，其子类会自动继承该注解。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>注解继承：允许子类隐式继承父类的注解</li>
+        <li>简化标注：减少重复注解声明</li>
+        <li>框架扩展：支持基于继承的注解驱动编程</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>元注解 (Meta Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Java 编译器 → 类加载器 → 反射 API
+               ↓
+        Annotation Inheritance Policy</code></pre>
+    <p>通过类继承机制实现注解传递</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 声明可继承的注解
+        @Inherited
+        @Target(ElementType.TYPE)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface InheritedAnnotation {
+            String value();
+        }
+
+        // 父类使用注解
+        @InheritedAnnotation("Parent")
+        public class ParentClass {
+        }
+
+        // 子类自动继承注解
+        public class ChildClass extends ParentClass {
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>仅能用于类级别注解声明</li>
+        <li>必须与 <code>@Target(ElementType.TYPE)</code> 配合使用</li>
+        <li>接口和枚举不支持继承</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解声明阶段</strong>
+            <ul>
+                <li>通过 <code>@Inherited</code> 标记注解可继承</li>
+                <li>限定注解作用于类级别</li>
+            </ul>
+        </li>
+        <li><strong>继承传递阶段</strong>
+            <ul>
+                <li>子类继承父类时自动获取注解</li>
+                <li>通过反射 API 可访问继承的注解</li>
+            </ul>
+        </li>
+        <li><strong>覆盖优先级</strong>
+            <ul>
+                <li>子类自身注解优先级高于继承注解</li>
+                <li>多重继承时最近父类的注解生效</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>基础类标注</td>
+            <td>父类标注后子类自动继承</td>
+            <td><pre><code>@Inherited @Component</code></pre></td>
+        </tr>
+        <tr>
+            <td>框架扩展</td>
+            <td>通过继承简化子模块注解</td>
+            <td><pre><code>@Inherited @RestController</code></pre></td>
+        </tr>
+        <tr>
+            <td>注解继承验证</td>
+            <td>反射检查继承的注解</td>
+            <td><pre><code>Class.getAnnotation()</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>无参数</td>
+            <td>-</td>
+            <td>-</td>
+            <td>该注解本身不接受参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 声明可继承的注解
+        @Inherited
+        @Target(ElementType.TYPE)
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface InheritedAnnotation {
+            String value();
+        }
+
+        // 父类标注
+        @InheritedAnnotation("Parent")
+        class Animal {
+        }
+
+        // 子类继承
+        class Dog extends Animal {
+        }
+
+        // 验证继承
+        public class InheritanceTest {
+            public static void main(String[] args) {
+                // 检查父类注解
+                InheritedAnnotation parentAnno =
+                    Animal.class.getAnnotation(InheritedAnnotation.class);
+                System.out.println("Parent: " + parentAnno.value());
+
+                // 检查子类注解（自动继承）
+                InheritedAnnotation childAnno =
+                    Dog.class.getAnnotation(InheritedAnnotation.class);
+                System.out.println("Child: " + childAnno.value());
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>控制台输出 "Parent: Parent"</li>
+        <li>控制台输出 "Child: Parent"</li>
+        <li>子类成功继承父类注解</li>
+    </ul>
+</div>
+
+</body>
+</html>

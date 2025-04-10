@@ -1,0 +1,234 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Component</code> 是 Spring 框架中的一个注解，用于标记一个类为 Spring 管理的组件。被该注解标记的类会被 Spring 自动扫描并注册到应用程序上下文中，成为一个 Bean，从而可以在其他地方通过依赖注入的方式使用。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>自动扫描与注册：Spring 会自动扫描带有 <code>@Component</code> 注解的类，并将其注册为 Bean。</li>
+        <li>依赖注入：注册后的 Bean 可以在其他类中通过依赖注入的方式使用，提高代码的可维护性和可测试性。</li>
+        <li>简化配置：减少了 XML 配置文件的使用，使得 Spring 应用的配置更加简洁。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 组件注解 (Component Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        ComponentScan
+               ↓
+        ClassPathBeanDefinitionScanner
+               ↓
+        @Component
+               ↓
+        BeanDefinitionRegistry
+    </code></pre>
+    <p>Spring 在启动时，通过 <code>ComponentScan</code> 注解开启组件扫描功能，使用 <code>ClassPathBeanDefinitionScanner</code> 扫描带有 <code>@Component</code> 注解的类，将其转换为 <code>BeanDefinition</code> 并注册到 <code>BeanDefinitionRegistry</code> 中。在后续的依赖注入过程中，Spring 会根据这些 <code>BeanDefinition</code> 创建和管理 Bean 实例。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.stereotype.Component;
+
+        @Component
+        public class MyService {
+            public void doSomething() {
+                System.out.println("Doing something...");
+            }
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        public class MyController {
+            private final MyService myService;
+
+            @Autowired
+            public MyController(MyService myService) {
+                this.myService = myService;
+            }
+
+            public void performAction() {
+                myService.doSomething();
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于类、接口或枚举类型的声明。</li>
+        <li>通常用于自定义的业务逻辑类，如服务层、数据访问层等。</li>
+        <li>需要在 Spring 配置中开启组件扫描功能，才能使 <code>@Component</code> 注解生效。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>组件扫描阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，会根据 <code>ComponentScan</code> 注解指定的扫描路径，使用 <code>ClassPathBeanDefinitionScanner</code> 扫描所有类。</li>
+                <li>当发现带有 <code>@Component</code> 注解的类时，会将其封装为 <code>BeanDefinition</code> 对象，并注册到 <code>BeanDefinitionRegistry</code> 中。</li>
+            </ul>
+        </li>
+        <li><strong>Bean 创建阶段</strong>
+            <ul>
+                <li>在需要使用 Bean 时，Spring 会根据 <code>BeanDefinition</code> 信息创建 Bean 实例。</li>
+                <li>如果 Bean 存在依赖关系，Spring 会自动进行依赖注入。</li>
+            </ul>
+        </li>
+        <li><strong>生命周期管理阶段</strong>
+            <ul>
+                <li>Spring 会管理 Bean 的生命周期，包括初始化、销毁等操作。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>服务层组件</td>
+            <td>使用 <code>@Component</code> 注解标记服务类，实现业务逻辑的封装和管理。</td>
+            <td><pre><code>@Component
+public class UserService {
+    public void saveUser(User user) {
+        // 保存用户的业务逻辑
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据访问层组件</td>
+            <td>使用 <code>@Component</code> 注解标记数据访问类，实现与数据库的交互。</td>
+            <td><pre><code>@Component
+public class UserDao {
+    public void insertUser(User user) {
+        // 插入用户数据到数据库的逻辑
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>控制器组件</td>
+            <td>使用 <code>@Component</code> 注解标记控制器类，处理 HTTP 请求。</td>
+            <td><pre><code>@Component
+public class UserController {
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void handleUserRequest() {
+        // 处理用户请求的逻辑
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定 Bean 的名称。如果不指定，Spring 会根据类名生成一个默认的 Bean 名称，首字母小写。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.stereotype.Component;
+
+        // 服务层组件
+        @Component
+        public class ProductService {
+            public void addProduct(Product product) {
+                System.out.println("Adding product: " + product.getName());
+            }
+        }
+
+        // 实体类
+        class Product {
+            private String name;
+
+            public Product(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.stereotype.Component;
+
+        // 控制器组件
+        @Component
+        public class ProductController {
+            private final ProductService productService;
+
+            @Autowired
+            public ProductController(ProductService productService) {
+                this.productService = productService;
+            }
+
+            public void createProduct() {
+                Product product = new Product("Sample Product");
+                productService.addProduct(product);
+            }
+        }
+
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.ComponentScan;
+
+        // 配置类
+        @ComponentScan(basePackages = "com.example")
+        public class AppConfig {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                ProductController productController = context.getBean(ProductController.class);
+                productController.createProduct();
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>通过 <code>@Component</code> 注解将 <code>ProductService</code> 和 <code>ProductController</code> 注册为 Spring Bean。</li>
+        <li>在 <code>AppConfig</code> 类中启动 Spring 容器，并获取 <code>ProductController</code> Bean 实例。</li>
+        <li>调用 <code>ProductController</code> 的 <code>createProduct</code> 方法，输出结果：
+            <pre>
+                Adding product: Sample Product
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

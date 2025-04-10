@@ -1,0 +1,216 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@AfterReturning</code> 是 AspectJ 框架中的关键注解，用于定义后置返回通知。此通知会在目标方法正常执行完毕并返回结果之后触发，且仅在目标方法未抛出异常时生效。通过该注解，开发者能够在目标方法成功返回的节点执行额外的处理逻辑。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>结果加工：对目标方法的返回结果进行二次处理，例如数据格式化、类型转换等，以满足特定业务场景的需求。</li>
+        <li>信息记录：记录目标方法成功执行的详细信息，包括返回结果、执行时间等，为后续的系统监控、性能分析和问题排查提供数据支持。</li>
+        <li>关联操作：基于目标方法的返回结果执行相关的业务操作，如更新统计数据、触发消息通知等。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>AspectJ 通知注解 (AspectJ Advice Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        AspectJ Framework
+               ↓
+        @Aspect
+               ↓
+        @AfterReturning + Pointcut
+               ↓
+        Target Method Normal Return
+    </code></pre>
+    <p>在 AspectJ 的体系中，<code>@AfterReturning</code> 注解需与 <code>@Aspect</code> 注解协同使用，在切面类里定义后置返回通知。同时，需借助切入点（Pointcut）来精准定位哪些目标方法会触发该通知。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.aspectj.lang.annotation.AfterReturning;
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        @Aspect
+        public class SocialMediaAspect {
+
+            // 定义切入点，匹配所有 com.example.socialmedia.service 包下的方法
+            @Pointcut("execution(* com.example.socialmedia.service.*.*(..))")
+            public void socialMediaServiceMethods() {}
+
+            // 定义后置返回通知
+            @AfterReturning(pointcut = "socialMediaServiceMethods()", returning = "result")
+            public void afterSocialMediaServiceMethodReturning(Object result) {
+                System.out.println("Social media service method returned: " + result);
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解应标注在切面类的方法上，使该方法成为后置返回通知的执行体。</li>
+        <li>后置返回通知方法的返回类型必须为 <code>void</code>。</li>
+        <li>若要获取目标方法的返回结果，后置返回通知方法可定义一个参数，参数名需与 <code>@AfterReturning</code> 注解的 <code>returning</code> 属性值保持一致。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>编译时织入</strong>
+            <ul>
+                <li>在编译阶段，AspectJ 编译器会对带有 <code>@Aspect</code> 注解的类进行解析，识别其中的切入点和 <code>@AfterReturning</code> 注解定义的后置返回通知。</li>
+                <li>依据切入点的定义，编译器会在目标类的字节码中插入后置返回通知的代码，生成增强后的字节码文件。</li>
+            </ul>
+        </li>
+        <li><strong>运行时织入</strong>
+            <ul>
+                <li>在运行时，当程序执行到切入点所匹配的目标方法，且目标方法正常返回结果时，会自动触发相应的后置返回通知逻辑。</li>
+                <li>若目标方法抛出异常，则不会执行后置返回通知。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据处理</td>
+            <td>对目标方法返回的原始数据进行处理，转换为前端可展示的格式。</td>
+            <td><pre><code>@Aspect
+public class DataProcessingAspect {
+    @Pointcut("execution(* com.example.data.service.*.*(..))")
+    public void dataServiceMethods() {}
+
+    @AfterReturning(pointcut = "dataServiceMethods()", returning = "result")
+    public void processData(Object result) {
+        // 数据处理逻辑
+        System.out.println("Processed data: " + result);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>业绩统计</td>
+            <td>根据业务方法的返回结果更新员工的业绩统计信息。</td>
+            <td><pre><code>@Aspect
+public class PerformanceStatsAspect {
+    @Pointcut("execution(* com.example.sales.service.*.*(..))")
+    public void salesServiceMethods() {}
+
+    @AfterReturning(pointcut = "salesServiceMethods()", returning = "result")
+    public void updatePerformanceStats(Object result) {
+        // 更新业绩统计的逻辑
+        System.out.println("Performance stats updated based on result: " + result);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>消息通知</td>
+            <td>当业务方法成功返回特定结果时，发送消息通知相关人员。</td>
+            <td><pre><code>@Aspect
+public class NotificationAspect {
+    @Pointcut("execution(* com.example.task.service.*.*(..))")
+    public void taskServiceMethods() {}
+
+    @AfterReturning(pointcut = "taskServiceMethods()", returning = "result")
+    public void sendNotification(Object result) {
+        if (result != null && result.equals("Task completed")) {
+            // 发送消息通知的逻辑
+            System.out.println("Notification sent for task completion.");
+        }
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>pointcut</td>
+            <td>String</td>
+            <td>无</td>
+            <td>指定切入点表达式，用于确定哪些目标方法会触发该后置返回通知。可以是已定义的切入点方法名，也可以是直接的切入点表达式。</td>
+        </tr>
+        <tr>
+            <td>returning</td>
+            <td>String</td>
+            <td>无</td>
+            <td>指定一个参数名，用于在后置返回通知方法中接收目标方法的返回结果。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.aspectj.lang.annotation.AfterReturning;
+        import org.aspectj.lang.annotation.Aspect;
+        import org.aspectj.lang.annotation.Pointcut;
+
+        // 切面类
+        @Aspect
+        public class FitnessAspect {
+
+            // 定义切入点，匹配所有 com.example.fitness.service 包下的方法
+            @Pointcut("execution(* com.example.fitness.service.*.*(..))")
+            public void fitnessServiceMethods() {}
+
+            // 后置返回通知，记录健身服务方法的返回结果
+            @AfterReturning(pointcut = "fitnessServiceMethods()", returning = "result")
+            public void afterFitnessServiceMethodReturning(Object result) {
+                System.out.println("Fitness service method returned: " + result);
+            }
+        }
+
+        // 目标类
+        package com.example.fitness.service;
+
+        public class WorkoutService {
+            public String getWorkoutPlan(int level) {
+                // 模拟获取健身计划
+                return "Workout plan for level " + level;
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                WorkoutService workoutService = new WorkoutService();
+                String plan = workoutService.getWorkoutPlan(2);
+                System.out.println("Received workout plan: " + plan);
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>调用 <code>WorkoutService</code> 类的 <code>getWorkoutPlan</code> 方法时，会先执行该方法的逻辑，返回健身计划。</li>
+        <li>方法正常返回后，会执行 <code>FitnessAspect</code> 切面类中的后置返回通知，输出健身服务方法的返回结果。</li>
+        <li>主类会输出接收到的健身计划信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

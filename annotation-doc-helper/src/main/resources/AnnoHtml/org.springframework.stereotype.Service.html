@@ -1,0 +1,304 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Service</code> 是 Spring 框架中的一个注解，它是 <code>@Component</code> 的一种特殊形式，用于标记一个类为服务层组件。该注解表明这个类主要负责处理业务逻辑，协调数据访问层和表现层之间的交互。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>业务逻辑封装：将业务逻辑封装在标记的类中，提高代码的可维护性和可复用性。</li>
+        <li>组件扫描：Spring 自动扫描带有 <code>@Service</code> 注解的类，将其注册为 Bean 并管理其生命周期。</li>
+        <li>分层架构：有助于实现软件的分层架构，使代码结构更加清晰，便于团队协作开发。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 服务层注解 (Service Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Controller
+               ↓
+        Service
+               ↓
+        Repository
+               ↓
+        Database
+    </code></pre>
+    <p>在 Spring 应用的分层架构中，<code>Controller</code> 负责接收客户端请求，将请求转发给 <code>Service</code> 层。<code>Service</code> 层调用 <code>Repository</code> 层的方法进行数据访问，最终与数据库进行交互。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.stereotype.Service;
+        import java.util.List;
+
+        @Service
+        public class UserService {
+            private final UserRepository userRepository;
+
+            @Autowired
+            public UserService(UserRepository userRepository) {
+                this.userRepository = userRepository;
+            }
+
+            public List<User> getAllUsers() {
+                return userRepository.findAll();
+            }
+
+            public void saveUser(User user) {
+                userRepository.save(user);
+            }
+        }
+
+        class User {
+            private String name;
+
+            public User(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+
+        import org.springframework.stereotype.Repository;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        @Repository
+        public class UserRepository {
+            private final List<User> users = new ArrayList<>();
+
+            public void save(User user) {
+                users.add(user);
+            }
+
+            public List<User> findAll() {
+                return users;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于类的声明。</li>
+        <li>类中主要定义与业务逻辑相关的方法，通常会调用 <code>Repository</code> 层的方法进行数据操作。</li>
+        <li>需要在 Spring 配置中开启组件扫描，确保 <code>@Service</code> 注解的类能被发现。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>组件扫描阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，根据配置的组件扫描路径，扫描带有 <code>@Service</code> 注解的类。</li>
+                <li>将这些类注册为 Bean 并存储在 Spring 容器中。</li>
+            </ul>
+        </li>
+        <li><strong>业务逻辑处理阶段</strong>
+            <ul>
+                <li>当 <code>Controller</code> 层调用 <code>Service</code> 层的方法时，<code>Service</code> 层根据业务需求调用 <code>Repository</code> 层的方法进行数据访问。</li>
+                <li><code>Service</code> 层可以对数据进行加工、验证和转换等操作，实现具体的业务逻辑。</li>
+            </ul>
+        </li>
+        <li><strong>事务管理阶段</strong>
+            <ul>
+                <li>如果业务逻辑涉及到事务操作，<code>Service</code> 层可以使用 Spring 的事务管理机制，确保数据操作的一致性和完整性。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>用户业务逻辑处理</td>
+            <td>使用 <code>@Service</code> 注解标记类，处理用户注册、登录、信息修改等业务逻辑。</td>
+            <td><pre><code>@Service
+public class UserManagementService {
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserManagementService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public boolean registerUser(User user) {
+        // 验证用户信息
+        if (isValidUser(user)) {
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isValidUser(User user) {
+        // 实现用户信息验证逻辑
+        return user.getName() != null && !user.getName().isEmpty();
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>订单业务逻辑处理</td>
+            <td>使用 <code>@Service</code> 注解标记类，处理订单创建、支付、取消等业务逻辑。</td>
+            <td><pre><code>@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final PaymentService paymentService;
+
+    @Autowired
+    public OrderService(OrderRepository orderRepository, PaymentService paymentService) {
+        this.orderRepository = orderRepository;
+        this.paymentService = paymentService;
+    }
+
+    public boolean createOrder(Order order) {
+        // 创建订单
+        orderRepository.save(order);
+        // 处理支付
+        return paymentService.processPayment(order);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>数据统计与分析</td>
+            <td>使用 <code>@Service</code> 注解标记类，对数据库中的数据进行统计和分析，生成报表。</td>
+            <td><pre><code>@Service
+public class DataAnalysisService {
+    private final DataRepository dataRepository;
+
+    @Autowired
+    public DataAnalysisService(DataRepository dataRepository) {
+        this.dataRepository = dataRepository;
+    }
+
+    public int getTotalDataCount() {
+        return dataRepository.findAll().size();
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定 Bean 的名称。如果不指定，Spring 会根据类名生成一个默认的 Bean 名称，首字母小写。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.stereotype.Service;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        @Service
+        public class ProductService {
+            private final ProductRepository productRepository;
+
+            @Autowired
+            public ProductService(ProductRepository productRepository) {
+                this.productRepository = productRepository;
+            }
+
+            public List<Product> getAllProducts() {
+                return productRepository.findAll();
+            }
+
+            public void addProduct(Product product) {
+                productRepository.save(product);
+            }
+        }
+
+        class Product {
+            private String name;
+
+            public Product(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+
+        import org.springframework.stereotype.Repository;
+
+        @Repository
+        public class ProductRepository {
+            private final List<Product> products = new ArrayList<>();
+
+            public void save(Product product) {
+                products.add(product);
+            }
+
+            public List<Product> findAll() {
+                return products;
+            }
+        }
+
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.ComponentScan;
+
+        @ComponentScan(basePackages = "com.example")
+        public class AppConfig {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                ProductService productService = context.getBean(ProductService.class);
+
+                Product product = new Product("Sample Product");
+                productService.addProduct(product);
+
+                List<Product> allProducts = productService.getAllProducts();
+                for (Product p : allProducts) {
+                    System.out.println(p.getName());
+                }
+
+                context.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>通过 <code>@Service</code> 注解将 <code>ProductService</code> 注册为 Spring Bean，负责产品业务逻辑的处理。</li>
+        <li><code>ProductService</code> 依赖于 <code>ProductRepository</code> 进行产品数据的管理。</li>
+        <li>在 <code>AppConfig</code> 类中启动 Spring 容器，添加一个产品并获取所有产品信息，最终输出产品名称。
+            <pre>
+                Sample Product
+            </pre>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@RequestHeader</code> 是 Spring 框架提供的注解，用于将 HTTP 请求头中的信息绑定到控制器方法的参数上。HTTP 请求头包含了许多与请求相关的元数据，如用户代理、内容类型、授权信息等，使用该注解可以方便地从请求头中提取所需信息。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>获取请求头信息：允许控制器方法直接访问 HTTP 请求头中的数据，从而根据这些信息进行相应的处理。</li>
+        <li>支持请求定制：通过读取请求头中的特定信息，实现对请求的定制化处理，如根据用户代理返回不同格式的数据。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerAdapter
+    </code></pre>
+    <p>Spring 的 <code>DispatcherServlet</code> 接收客户端的 HTTP 请求后，由 <code>HandlerMapping</code> 找到匹配的控制器方法。<code>RequestMappingHandlerAdapter</code> 在调用该方法时，会根据 <code>@RequestHeader</code> 注解将请求头中的信息绑定到方法的参数上。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 获取请求头中的 User-Agent 信息
+            @GetMapping("/info")
+            public String getRequestInfo(@RequestHeader("User-Agent") String userAgent) {
+                return "Your browser's user agent is: " + userAgent;
+            }
+
+            // 获取请求头中的授权信息
+            @GetMapping("/secure")
+            public String getSecureData(@RequestHeader("Authorization") String authHeader) {
+                // 处理授权信息
+                return "Access granted based on provided authorization.";
+            }
+
+            // 处理可选的请求头信息
+            @GetMapping("/optional")
+            public String handleOptionalHeader(@RequestHeader(value = "X-Custom-Header", required = false) String customHeader) {
+                if (customHeader != null) {
+                    return "Custom header value: " + customHeader;
+                } else {
+                    return "Custom header not provided.";
+                }
+            }
+
+            // 处理带有默认值的请求头信息
+            @GetMapping("/default")
+            public String handleDefaultHeader(@RequestHeader(value = "X-Fallback-Header", defaultValue = "default-value") String fallbackHeader) {
+                return "Header value: " + fallbackHeader;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解只能用于控制器方法的参数上。</li>
+        <li>注解中的 <code>value</code> 属性用于指定要获取的请求头名称，如果参数名与请求头名称一致，<code>value</code> 属性可以省略。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>客户端发送 HTTP 请求，<code>DispatcherServlet</code> 接收请求后，<code>HandlerMapping</code> 根据请求的 URL 找到对应的控制器方法。</li>
+                <li>检查请求头，确定其中包含的各个请求头信息。</li>
+            </ul>
+        </li>
+        <li><strong>参数绑定阶段</strong>
+            <ul>
+                <li><code>RequestMappingHandlerAdapter</code> 负责调用控制器方法，在调用时，根据 <code>@RequestHeader</code> 注解中的配置，从请求头中提取相应的信息。</li>
+                <li>如果请求头信息与方法参数类型不匹配，Spring 会尝试进行类型转换。对于设置了 <code>required = false</code> 的请求头，如果请求中未包含该头信息，方法参数将被赋值为 <code>null</code>；对于设置了 <code>defaultValue</code> 的请求头，如果请求中未包含该头信息，方法参数将被赋值为默认值。</li>
+            </ul>
+        </li>
+        <li><strong>方法执行阶段</strong>
+            <ul>
+                <li>将提取并转换后的请求头信息绑定到方法参数上，然后调用控制器方法，方法使用这些参数执行相应的业务逻辑。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>用户代理识别</td>
+            <td>通过获取 <code>User-Agent</code> 请求头信息，识别客户端的浏览器类型、操作系统等，从而返回不同格式或优化后的内容。</td>
+            <td><pre><code>@GetMapping("/content") public String getContent(@RequestHeader("User-Agent") String userAgent) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>授权验证</td>
+            <td>获取 <code>Authorization</code> 请求头中的令牌或凭证信息，进行身份验证和授权检查，确保只有合法用户可以访问受保护的资源。</td>
+            <td><pre><code>@GetMapping("/protected") public String getProtectedData(@RequestHeader("Authorization") String authHeader) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多语言支持</td>
+            <td>读取 <code>Accept-Language</code> 请求头，根据用户的语言偏好返回相应语言的内容。</td>
+            <td><pre><code>@GetMapping("/localized") public String getLocalizedContent(@RequestHeader("Accept-Language") String lang) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>指定要获取的请求头名称，用于将请求头信息绑定到方法参数。若参数名与请求头名称一致，此参数可省略。</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>与 <code>value</code> 作用相同，是 <code>value</code> 的别名。</td>
+        </tr>
+        <tr>
+            <td>required</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定该请求头是否为必需项。若设置为 <code>false</code>，当请求中缺少该请求头时，方法参数将被赋值为 <code>null</code>。</td>
+        </tr>
+        <tr>
+            <td>defaultValue</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>当请求中缺少该请求头时，方法参数将被赋值为该默认值。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 获取请求头中的 User-Agent 信息
+            @GetMapping("/info")
+            public String getRequestInfo(@RequestHeader("User-Agent") String userAgent) {
+                return "Your browser's user agent is: " + userAgent;
+            }
+
+            // 模拟用户服务类
+            static class UserService {
+                public boolean isAuthorized(String authHeader) {
+                    // 简单模拟授权验证
+                    return authHeader != null && authHeader.startsWith("Bearer ");
+                }
+            }
+
+            private UserService userService = new UserService();
+
+            // 获取请求头中的授权信息
+            @GetMapping("/secure")
+            public String getSecureData(@RequestHeader("Authorization") String authHeader) {
+                if (userService.isAuthorized(authHeader)) {
+                    return "Access granted based on provided authorization.";
+                } else {
+                    return "Access denied.";
+                }
+            }
+        }
+
+        // 验证代码
+        public class RequestHeaderTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>GET /api/info</code> 请求时，控制器方法会获取请求头中的 <code>User-Agent</code> 信息并返回给客户端。</li>
+        <li>当发送 <code>GET /api/secure</code> 请求时，控制器方法会获取请求头中的 <code>Authorization</code> 信息，进行授权验证，并根据验证结果返回相应的信息给客户端。</li>
+    </ul>
+</div>
+
+</body>
+</html>

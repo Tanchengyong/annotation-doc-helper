@@ -1,0 +1,257 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Embeddable</code> 是 Java Persistence API (JPA) 中的一个注解，用于将一个 Java 类标记为可嵌入组件。被该注解修饰的类可以作为其他实体类的属性存在，其数据会直接嵌入到宿主实体对应的数据库表中，而无需创建独立的表。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>对象组合建模：通过嵌入类实现对象的组合关系，比继承更灵活。</li>
+        <li>数据封装复用：将重复出现的属性集抽象为独立组件，提升代码复用性。</li>
+        <li>简化数据库结构：避免为简单属性集创建独立表，减少表关联复杂度。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 注解 (JPA Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity
+          ↓
+        @Embeddable
+          ↓
+        Database Table Columns
+    </code></pre>
+    <p>当实体类包含 <code>@Embeddable</code> 类型的属性时，JPA 会将嵌入类的属性映射为宿主实体表中的列。例如：</p>
+    <pre><code>
+        @Entity
+        public class Employee {
+            @Id
+            private Long id;
+            private String name;
+            @Embedded
+            private Address address; // Address 是 @Embeddable 类
+        }
+    </code></pre>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+
+        @Embeddable
+        public class Address {
+            private String street;
+            private String city;
+            private String zipCode;
+
+            // 无参构造函数
+            public Address() {}
+
+            // 带参构造函数
+            public Address(String street, String city, String zipCode) {
+                this.street = street;
+                this.city = city;
+                this.zipCode = zipCode;
+            }
+
+            // Getters 和 Setters
+        }
+
+        @Entity
+        public class Customer {
+            @Id
+            private Long id;
+            private String name;
+            @Embedded
+            private Address billingAddress;
+            @Embedded
+            private Address shippingAddress;
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须有无参构造函数（可以是默认的）</li>
+        <li>通常实现 Serializable 接口</li>
+        <li>属性使用 @Column 等注解定义列映射</li>
+        <li>宿主实体通过 @Embedded 引用嵌入类</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析</strong>
+            <ul>
+                <li>扫描所有 @Embeddable 类，解析属性及注解</li>
+                <li>生成嵌入类属性到数据库列的映射关系</li>
+            </ul>
+        </li>
+        <li><strong>对象关系映射</strong>
+            <ul>
+                <li>宿主实体通过 @Embedded 注解引用嵌入类</li>
+                <li>嵌入类属性直接映射为宿主表的列</li>
+            </ul>
+        </li>
+        <li><strong>持久化操作</strong>
+            <ul>
+                <li>通过 EntityManager 操作宿主实体时</li>
+                <li>自动级联处理嵌入类的属性值</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>地址信息管理</td>
+            <td>将地址信息抽象为嵌入类，复用在不同实体中</td>
+            <td><pre><code>@Embeddable
+public class Address {
+    // 地址属性
+}
+
+@Entity
+public class User {
+    @Embedded
+    private Address address;
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多语言字段</td>
+            <td>为每个语言创建嵌入类，统一管理多语言属性</td>
+            <td><pre><code>@Embeddable
+public class Multilingual {
+    private String en;
+    private String zh;
+}
+
+@Entity
+public class Product {
+    @Embedded
+    private Multilingual description;
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>复杂属性分组</td>
+            <td>将多个相关属性组合成嵌入类，提高代码可读性</td>
+            <td><pre><code>@Embeddable
+public class ContactInfo {
+    private String phone;
+    private String email;
+}
+
+@Entity
+public class Employee {
+    @Embedded
+    private ContactInfo contact;
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Embeddable
+        public class Address {
+            private String street;
+            private String city;
+            private String zipCode;
+
+            public Address() {}
+
+            public Address(String street, String city, String zipCode) {
+                this.street = street;
+                this.city = city;
+                this.zipCode = zipCode;
+            }
+
+            // Getters 和 Setters
+        }
+
+        @Entity
+        public class User {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            @Embedded
+            @AttributeOverrides({
+                @AttributeOverride(name = "street", column = @Column(name = "billing_street")),
+                @AttributeOverride(name = "city", column = @Column(name = "billing_city")),
+                @AttributeOverride(name = "zipCode", column = @Column(name = "billing_zip"))
+            })
+            private Address billingAddress;
+
+            @Embedded
+            private Address shippingAddress;
+
+            // Getters 和 Setters
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                em.getTransaction().begin();
+
+                User user = new User();
+                user.setName("Alice");
+                user.setBillingAddress(new Address("123 Main St", "New York", "10001"));
+                user.setShippingAddress(new Address("456 Elm St", "Los Angeles", "90001"));
+
+                em.persist(user);
+                em.getTransaction().commit();
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>创建 User 实体时自动持久化地址信息</li>
+        <li>数据库表中直接包含 billing_street、billing_city 等列</li>
+        <li>支持通过 @AttributeOverride 自定义列名</li>
+    </ul>
+</div>
+
+</body>
+</html>

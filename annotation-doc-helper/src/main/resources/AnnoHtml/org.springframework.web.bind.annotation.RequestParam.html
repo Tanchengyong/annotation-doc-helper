@@ -1,0 +1,220 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@RequestParam</code> 是 Spring 框架里的注解，其作用是把 HTTP 请求中的参数绑定到控制器方法的参数上。在 HTTP 请求中，参数通常以键值对的形式存在于 URL 的查询字符串或者表单数据里，<code>@RequestParam</code> 能方便地提取这些参数并传递给方法参数。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>参数绑定：将 HTTP 请求中的参数绑定到控制器方法的参数，实现参数传递。</li>
+        <li>灵活处理请求：支持处理可选参数、默认值等情况，使接口更加灵活。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerAdapter
+    </code></pre>
+    <p>Spring 的 <code>DispatcherServlet</code> 接收请求后，借助 <code>HandlerMapping</code> 找到匹配的处理器方法。<code>RequestMappingHandlerAdapter</code> 在调用处理器方法时，运用 <code>@RequestParam</code> 注解把请求中的参数绑定到方法参数。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 处理带查询参数的请求，获取用户列表
+            @GetMapping("/users")
+            public List&lt;User&gt; getUsers(@RequestParam("page") int page, @RequestParam("size") int size) {
+                return userService.getUsers(page, size);
+            }
+
+            // 处理可选参数的请求
+            @GetMapping("/products")
+            public List&lt;Product&gt; getProducts(@RequestParam(value = "category", required = false) String category) {
+                return productService.getProductsByCategory(category);
+            }
+
+            // 处理带默认值参数的请求
+            @GetMapping("/articles")
+            public List&lt;Article&gt; getArticles(@RequestParam(value = "sort", defaultValue = "date") String sort) {
+                return articleService.getArticles(sort);
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能用于控制器方法的参数上。</li>
+        <li>注解中的 value 属性指定请求参数名，若参数名与方法参数名一致，value 属性可省略。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>客户端发送请求，<code>DispatcherServlet</code> 接收请求后，<code>HandlerMapping</code> 根据请求 URL 找到匹配的控制器方法。</li>
+                <li>解析请求中的参数，将其与控制器方法上的 <code>@RequestParam</code> 注解进行匹配。</li>
+            </ul>
+        </li>
+        <li><strong>参数绑定阶段</strong>
+            <ul>
+                <li><code>RequestMappingHandlerAdapter</code> 负责调用控制器方法，在调用时，依据 <code>@RequestParam</code> 注解将请求参数的值绑定到方法的对应参数上。</li>
+                <li>若请求参数与方法参数类型不匹配，Spring 会尝试进行类型转换。</li>
+                <li>对于设置了 <code>required = false</code> 的参数，若请求中未包含该参数，方法参数将被赋值为 null；对于设置了 <code>defaultValue</code> 的参数，若请求中未包含该参数，方法参数将被赋值为默认值。</li>
+            </ul>
+        </li>
+        <li><strong>方法执行阶段</strong>
+            <ul>
+                <li>绑定好参数后，调用控制器方法，方法使用绑定的参数执行相应的业务逻辑。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>分页查询</td>
+            <td>使用 <code>@RequestParam</code> 接收页码和每页数量参数，实现分页查询功能。</td>
+            <td><pre><code>@GetMapping("/items") public List&lt;Item&gt; getItems(@RequestParam("page") int page, @RequestParam("size") int size) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>条件查询</td>
+            <td>通过 <code>@RequestParam</code> 接收查询条件参数，根据条件筛选数据。</td>
+            <td><pre><code>@GetMapping("/students") public List&lt;Student&gt; getStudents(@RequestParam(value = "grade", required = false) String grade) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>排序查询</td>
+            <td>使用 <code>@RequestParam</code> 接收排序规则参数，对数据进行排序查询。</td>
+            <td><pre><code>@GetMapping("/books") public List&lt;Book&gt; getBooks(@RequestParam(value = "sort", defaultValue = "title") String sort) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>指定请求参数名，用于将请求参数绑定到方法参数。若参数名与方法参数名一致，此参数可省略。</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>与 value 作用相同，是 value 的别名。</td>
+        </tr>
+        <tr>
+            <td>required</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>指定该请求参数是否为必需项。若设置为 false，当请求中缺少该参数时，方法参数将被赋值为 null。</td>
+        </tr>
+        <tr>
+            <td>defaultValue</td>
+            <td>String</td>
+            <td>""（空字符串）</td>
+            <td>当请求中缺少该参数时，方法参数将被赋值为该默认值。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        // 定义用户类
+        class User {
+            private String name;
+            private int age;
+
+            public User(String name, int age) {
+                this.name = name;
+                this.age = age;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+        }
+
+        // 模拟用户服务类
+        class UserService {
+            public List&lt;User&gt; getUsers(int page, int size) {
+                List&lt;User&gt; users = new ArrayList&lt;&gt;();
+                for (int i = 0; i &lt; size; i++) {
+                    users.add(new User("User" + (page * size + i), 20 + i));
+                }
+                return users;
+            }
+        }
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            private UserService userService = new UserService();
+
+            // 处理带查询参数的请求，获取用户列表
+            @GetMapping("/users")
+            public List&lt;User&gt; getUsers(@RequestParam("page") int page, @RequestParam("size") int size) {
+                return userService.getUsers(page, size);
+            }
+        }
+
+        // 验证代码
+        public class RequestParamTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>GET /api/users?page=1&size=10</code> 请求时，<code>@RequestParam</code> 会将 URL 中的 <code>page=1</code> 和 <code>size=10</code> 分别绑定到 <code>getUsers</code> 方法的 <code>page</code> 和 <code>size</code> 参数上，方法根据这些参数获取用户列表并返回。</li>
+    </ul>
+</div>
+
+</body>
+</html>

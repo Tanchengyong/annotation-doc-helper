@@ -1,0 +1,259 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PostUpdate</code> 是 Java Persistence API (JPA) 中的一个生命周期回调注解，用于标注实体类中的方法。当实体对象被更新到数据库后，JPA 会立即调用该方法。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>审计日志：记录实体更新的时间和内容。</li>
+        <li>缓存同步：更新与实体相关的缓存数据。</li>
+        <li>业务补偿：执行更新后的关联操作（如发送通知）。</li>
+        <li>状态验证：验证更新后的实体状态是否符合预期。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 生命周期回调注解 (Lifecycle Callback)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager.merge()
+               ↓
+        PersistenceProvider
+               ↓
+        @PostUpdate
+               ↓
+        Post-Update Operations
+    </code></pre>
+    <p>当调用 <code>EntityManager.merge()</code> 更新实体时，JPA 在数据库操作完成后触发该注解标注的方法。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Entity
+        public class Product {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private double price;
+            private Date lastUpdated;
+
+            @PostUpdate
+            public void updateLastUpdated() {
+                this.lastUpdated = new Date(); // 更新时间戳
+                System.out.println("Product " + name + " updated at " + lastUpdated);
+            }
+
+            // Getters 和 Setters
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>标注在实体类的方法上，方法需满足：</li>
+        <ul>
+            <li>无参数</li>
+            <li>返回类型为 void</li>
+            <li>非静态方法</li>
+            <li>不抛出 checked 异常</li>
+        </ul>
+        <li>方法执行时实体处于 Managed 状态</li>
+        <li>父类的 <code>@PostUpdate</code> 方法会在子类方法之后执行</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 扫描实体类时识别所有 <code>@PostUpdate</code> 方法</li>
+                <li>建立方法与实体类的关联</li>
+            </ul>
+        </li>
+        <li><strong>更新操作阶段</strong>
+            <ul>
+                <li>调用 <code>EntityManager.merge()</code> 触发实体更新</li>
+                <li>事务提交时生成 UPDATE SQL 并执行</li>
+            </ul>
+        </li>
+        <li><strong>回调触发阶段</strong>
+            <ul>
+                <li>数据库操作成功后，JPA 调用 <code>@PostUpdate</code> 方法</li>
+                <li>方法中可访问更新后的实体状态</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>版本控制</td>
+            <td>更新时自动递增版本号</td>
+            <td><pre><code>@Entity
+public class Document {
+    private int version;
+
+    @PostUpdate
+    public void incrementVersion() {
+        this.version++;
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>通知系统</td>
+            <td>更新后通知相关服务</td>
+            <td><pre><code>@Entity
+public class Order {
+    @PostUpdate
+    public void notifyUpdate() {
+        EventBus.publish(new OrderUpdatedEvent(this));
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存刷新</td>
+            <td>更新后强制刷新缓存</td>
+            <td><pre><code>@Entity
+public class User {
+    @PostUpdate
+    public void refreshCache() {
+        CacheManager.refresh("user_" + getId());
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+        java.util.Date;
+
+        @Entity
+        public class Book {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String title;
+            private String author;
+            private Date updatedAt;
+
+            @PostUpdate
+            public void updateTimestamp() {
+                this.updatedAt = new Date();
+                System.out.println("Book " + title + " updated at " + updatedAt);
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            public void setTitle(String title) {
+                this.title = title;
+            }
+
+            public String getAuthor() {
+                return author;
+            }
+
+            public void setAuthor(String author) {
+                this.author = author;
+            }
+
+            public Date getUpdatedAt() {
+                return updatedAt;
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    // 创建书籍
+                    Book book = new Book();
+                    book.setTitle("JPA in Action");
+                    book.setAuthor("John Doe");
+                    em.persist(book);
+
+                    em.getTransaction().commit();
+
+                    // 更新书籍
+                    em.getTransaction().begin();
+                    Book updatedBook = em.find(Book.class, book.getId());
+                    updatedBook.setAuthor("Jane Smith");
+                    em.merge(updatedBook);
+                    em.getTransaction().commit();
+
+                    // 验证更新时间
+                    Book finalBook = em.find(Book.class, book.getId());
+                    System.out.println("Final updatedAt: " + finalBook.getUpdatedAt());
+
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>创建书籍时不触发 <code>@PostUpdate</code></li>
+        <li>更新作者后输出：<code>Book JPA in Action updated at ...</code></li>
+        <li>验证 <code>updatedAt</code> 字段自动更新为当前时间</li>
+    </ul>
+</div>
+
+</body>
+</html>

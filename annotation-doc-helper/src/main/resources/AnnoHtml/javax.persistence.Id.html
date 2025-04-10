@@ -1,0 +1,247 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.Id</code> 是 JPA（Java Persistence API）中的一个注解，用于标记实体类中的某个属性作为数据库表的主键。
+        主键是数据库表中用于唯一标识每一行记录的字段，在 JPA 中通过 <code>@Id</code> 注解来指定实体类中哪个属性对应数据库表的主键。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>唯一标识：确保实体类在数据库表中的每一条记录都有唯一的标识，方便进行数据的增删改查操作。</li>
+        <li>映射关系：明确实体类属性与数据库表主键字段的映射关系，使 JPA 能够准确地处理实体对象与数据库记录之间的关联。</li>
+        <li>数据完整性：保证数据库表中记录的唯一性，维护数据的完整性和一致性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体映射注解 (Entity Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @Id
+               ↓
+        Database Table Primary Key
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责管理实体类的生命周期和与数据库的交互。<code>@Id</code> 注解为 <code>Entity Manager</code>
+        提供了实体类属性与数据库表主键的映射信息，使得 <code>Entity Manager</code> 能够根据主键进行数据的查找、更新和删除操作。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+
+        @Entity
+        public class Product {
+            @Id
+            private Long id;
+            private String name;
+            private double price;
+
+            // Getters and Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public double getPrice() {
+                return price;
+            }
+
+            public void setPrice(double price) {
+                this.price = price;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>必须作用于实体类的属性上，且该实体类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>通常使用基本数据类型（如 <code>int</code>、<code>long</code> 等）或其包装类作为主键属性的类型。</li>
+        <li>可以结合 <code>@GeneratedValue</code> 注解来实现主键的自动生成。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，会扫描带有 <code>@Entity</code> 和 <code>@Id</code> 注解的实体类。</li>
+                <li>解析 <code>@Id</code> 注解，确定实体类中哪个属性作为主键，并将该信息存储在 JPA 的元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，会根据元数据中的主键信息，
+                    生成对应的 SQL 语句。</li>
+                <li>在 SQL 语句中，会使用主键属性的值来定位数据库表中的记录，确保操作的准确性。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>单字段主键</td>
+            <td>使用 <code>@Id</code> 注解标记实体类中的一个属性作为单字段主键。</td>
+            <td><pre><code>@Entity
+public class Customer {
+    @Id
+    private Long customerId;
+    private String name;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>联合主键</td>
+            <td>结合 <code>@IdClass</code> 或 <code>@EmbeddedId</code> 注解，使用多个属性组合作为联合主键。</td>
+            <td><pre><code>@Entity
+@IdClass(OrderPK.class)
+public class Order {
+    @Id
+    private Long orderId;
+    @Id
+    private Long customerId;
+    private double amount;
+
+    // Getters and Setters
+}
+
+public class OrderPK implements Serializable {
+    private Long orderId;
+    private Long customerId;
+
+    // Getters, Setters, equals, and hashCode
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>主键自动生成</td>
+            <td>结合 <code>@GeneratedValue</code> 注解，实现主键的自动生成。</td>
+            <td><pre><code>@Entity
+public class Book {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long bookId;
+    private String title;
+
+    // Getters and Setters
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <p><code>@Id</code> 注解没有参数。它只是一个标记注解，用于标识实体类中的主键属性。</p>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.GeneratedValue;
+        import javax.persistence.GenerationType;
+
+        @Entity
+        public class Student {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long studentId;
+            private String name;
+            private int age;
+
+            public Long getStudentId() {
+                return studentId;
+            }
+
+            public void setStudentId(Long studentId) {
+                this.studentId = studentId;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                this.age = age;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Student student = new Student();
+                student.setName("Alice");
+                student.setAge(20);
+
+                em.getTransaction().begin();
+                em.persist(student);
+                em.getTransaction().commit();
+
+                Long studentId = student.getStudentId();
+                Student retrievedStudent = em.find(Student.class, studentId);
+                System.out.println("Retrieved Student: " + retrievedStudent.getName());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@Id</code> 和 <code>@GeneratedValue</code> 注解，
+            自动生成主键值并将 <code>Student</code> 实体对象保存到数据库中。</li>
+        <li>通过主键值可以从数据库中检索到对应的实体对象，并打印出学生的姓名。</li>
+    </ul>
+</div>
+
+</body>
+</html>

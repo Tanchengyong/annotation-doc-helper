@@ -1,0 +1,376 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.ManyToMany</code> 是 JPA（Java Persistence API）中的注解，用于定义实体之间多对多的关联关系。在数据库设计中，多对多关系通常需要一个中间表来实现，而该注解能让 JPA 自动处理这种复杂的关系，使得实体类之间的关联在代码层面得以清晰表达。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>关系映射：准确地将实体间的多对多关系映射到数据库表结构，方便进行数据的持久化和查询操作。</li>
+        <li>简化开发：避免手动编写复杂的 SQL 语句来处理中间表，减少开发工作量。</li>
+        <li>提高代码可读性：通过注解清晰展示实体间的关联关系，使代码更易理解和维护。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体关联映射注解 (Entity Association Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Manager
+               ↓
+        @ManyToMany
+               ↓
+        Database Intermediate Table
+    </code></pre>
+    <p>JPA 的 <code>Entity Manager</code> 负责管理实体类的生命周期和与数据库的交互。<code>@ManyToMany</code> 注解为 <code>Entity Manager</code> 提供了实体间多对多关系的映射信息，<code>Entity Manager</code> 会根据这些信息自动处理中间表的插入、更新和删除操作，以维护实体间的关联。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.ManyToMany;
+        import java.util.List;
+
+        @Entity
+        public class Student {
+            @Id
+            private Long id;
+            private String name;
+
+            @ManyToMany(mappedBy = "students")
+            private List&lt;Course&gt; courses;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public List&lt;Course&gt; getCourses() {
+                return courses;
+            }
+
+            public void setCourses(List&lt;Course&gt; courses) {
+                this.courses = courses;
+            }
+        }
+
+        @Entity
+        public class Course {
+            @Id
+            private Long id;
+            private String courseName;
+
+            @ManyToMany
+            private List&lt;Student&gt; students;
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getCourseName() {
+                return courseName;
+            }
+
+            public void setCourseName(String courseName) {
+                this.courseName = courseName;
+            }
+
+            public List&lt;Student&gt; getStudents() {
+                return students;
+            }
+
+            public void setStudents(List&lt;Student&gt; students) {
+                this.students = students;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>作用于实体类的集合属性上，该实体类需使用 <code>@Entity</code> 注解标记。</li>
+        <li>在多对多关系中，需要指定关系的拥有方和被拥有方。通常在非拥有方使用 <code>mappedBy</code> 属性来指定拥有方的关联属性名。</li>
+        <li>可以通过 <code>@JoinTable</code> 注解进一步自定义中间表的名称和列名。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 启动时，扫描带有 <code>@Entity</code> 和 <code>@ManyToMany</code> 注解的实体类。</li>
+                <li>解析 <code>@ManyToMany</code> 注解及其相关属性（如 <code>mappedBy</code>、<code>@JoinTable</code>），确定实体间的多对多关系和中间表的结构信息，并将这些信息存储在 JPA 元数据中。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>当 <code>Entity Manager</code> 执行对实体类的操作（如保存、查询、更新、删除）时，会根据元数据中的关系信息，自动处理中间表的操作。</li>
+                <li>例如，在保存一个拥有多个关联实体的实体时，会在中间表中插入相应的关联记录；在删除一个实体时，会同时删除中间表中与之相关的关联记录。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>学生与课程的关系</td>
+            <td>一个学生可以选修多门课程，一门课程可以被多个学生选修，使用 <code>@ManyToMany</code> 注解来映射这种关系。</td>
+            <td><pre><code>@Entity
+public class Student {
+    // ...
+    @ManyToMany(mappedBy = "students")
+    private List&lt;Course&gt; courses;
+    // ...
+}
+
+@Entity
+public class Course {
+    // ...
+    @ManyToMany
+    private List&lt;Student&gt; students;
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>用户与角色的关系</td>
+            <td>一个用户可以拥有多个角色，一个角色可以被多个用户拥有，通过 <code>@ManyToMany</code> 注解实现这种多对多关联。</td>
+            <td><pre><code>@Entity
+public class User {
+    // ...
+    @ManyToMany(mappedBy = "users")
+    private List&lt;Role&gt; roles;
+    // ...
+}
+
+@Entity
+public class Role {
+    // ...
+    @ManyToMany
+    private List&lt;User&gt; users;
+    // ...
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>书籍与作者的关系</td>
+            <td>一本书可以有多个作者，一个作者可以编写多本书，使用该注解来处理这种复杂的关联。</td>
+            <td><pre><code>@Entity
+public class Book {
+    // ...
+    @ManyToMany(mappedBy = "books")
+    private List&lt;Author&gt; authors;
+    // ...
+}
+
+@Entity
+public class Author {
+    // ...
+    @ManyToMany
+    private List&lt;Book&gt; books;
+    // ...
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>targetEntity</td>
+            <td>Class</td>
+            <td>根据集合属性的泛型类型推断</td>
+            <td>指定关联的目标实体类。</td>
+        </tr>
+        <tr>
+            <td>cascade</td>
+            <td>CascadeType[]</td>
+            <td>{} (空数组)</td>
+            <td>指定级联操作类型，如级联保存、更新、删除等。</td>
+        </tr>
+        <tr>
+            <td>fetch</td>
+            <td>FetchType</td>
+            <td>FetchType.LAZY</td>
+            <td>指定关联实体的获取方式，有 <code>LAZY</code>（懒加载）和 <code>EAGER</code>（立即加载）两种。</td>
+        </tr>
+        <tr>
+            <td>mappedBy</td>
+            <td>String</td>
+            <td>""</td>
+            <td>指定关系的被拥有方，用于双向关联，值为拥有方实体类中关联属性的名称。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.ManyToMany;
+        import javax.persistence.JoinTable;
+        import javax.persistence.JoinColumn;
+        import java.util.ArrayList;
+        import java.util.List;
+
+        @Entity
+        public class Project {
+            @Id
+            private Long id;
+            private String projectName;
+
+            @ManyToMany
+            @JoinTable(
+                    name = "project_employee",
+                    joinColumns = @JoinColumn(name = "project_id"),
+                    inverseJoinColumns = @JoinColumn(name = "employee_id")
+            )
+            private List&lt;Employee&gt; employees = new ArrayList&lt;&gt;();
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getProjectName() {
+                return projectName;
+            }
+
+            public void setProjectName(String projectName) {
+                this.projectName = projectName;
+            }
+
+            public List&lt;Employee&gt; getEmployees() {
+                return employees;
+            }
+
+            public void setEmployees(List&lt;Employee&gt; employees) {
+                this.employees = employees;
+            }
+        }
+
+        @Entity
+        public class Employee {
+            @Id
+            private Long id;
+            private String employeeName;
+
+            @ManyToMany(mappedBy = "employees")
+            private List&lt;Project&gt; projects = new ArrayList&lt;&gt;();
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getEmployeeName() {
+                return employeeName;
+            }
+
+            public void setEmployeeName(String employeeName) {
+                this.employeeName = employeeName;
+            }
+
+            public List&lt;Project&gt; getProjects() {
+                return projects;
+            }
+
+            public void setProjects(List&lt;Project&gt; projects) {
+                this.projects = projects;
+            }
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPersistenceUnit");
+                EntityManager em = emf.createEntityManager();
+
+                Project project = new Project();
+                project.setId(1L);
+                project.setProjectName("Project A");
+
+                Employee employee1 = new Employee();
+                employee1.setId(1L);
+                employee1.setEmployeeName("John");
+
+                Employee employee2 = new Employee();
+                employee2.setId(2L);
+                employee2.setEmployeeName("Jane");
+
+                project.getEmployees().add(employee1);
+                project.getEmployees().add(employee2);
+                employee1.getProjects().add(project);
+                employee2.getProjects().add(project);
+
+                em.getTransaction().begin();
+                em.persist(project);
+                em.persist(employee1);
+                em.persist(employee2);
+                em.getTransaction().commit();
+
+                Project retrievedProject = em.find(Project.class, 1L);
+                System.out.println("Project Name: " + retrievedProject.getProjectName());
+                for (Employee emp : retrievedProject.getEmployees()) {
+                    System.out.println("Employee: " + emp.getEmployeeName());
+                }
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>运行 <code>Main</code> 类的 <code>main</code> 方法，JPA 会根据 <code>@ManyToMany</code> 注解和 <code>@JoinTable</code> 注解的配置，在数据库中创建 <code>Project</code>、<code>Employee</code> 表以及中间表 <code>project_employee</code>，并插入相应的记录。</li>
+        <li>通过查询 <code>Project</code> 实体，可以获取与之关联的 <code>Employee</code> 实体信息，并打印出来。</li>
+    </ul>
+</div>
+
+</body>
+</html>

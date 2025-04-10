@@ -1,0 +1,249 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@DeleteMapping</code> 是 Spring 框架在 4.3 版本引入的注解，它是 <code>@RequestMapping(method = RequestMethod.DELETE)</code> 的快捷方式，用于将 HTTP DELETE 请求映射到特定的处理方法上，主要用于删除服务器上的资源。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>简化代码：避免每次都显式指定 <code>method = RequestMethod.DELETE</code>，使代码更加简洁易读。</li>
+        <li>资源删除：方便对服务器上的资源进行删除操作，符合 RESTful 架构风格。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Web 注解 (Web Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        DispatcherServlet
+               ↓
+        HandlerMapping
+               ↓
+        RequestMappingHandlerMapping
+    </code></pre>
+    <p>和其他 Spring Web 注解一样，借助 Spring 的 <code>DispatcherServlet</code> 作为前端控制器，通过 <code>HandlerMapping</code> 查找匹配的处理器，由 <code>RequestMappingHandlerMapping</code> 处理注解的映射。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            // 处理 DELETE 请求删除用户
+            @DeleteMapping("/users/{id}")
+            public String deleteUser(@PathVariable("id") Long id) {
+                userService.deleteUser(id);
+                return "User with id " + id + " has been deleted.";
+            }
+
+            // 处理 DELETE 请求批量删除商品
+            @DeleteMapping("/products")
+            public String deleteProducts(@RequestParam("ids") List&lt;Long&gt; ids) {
+                productService.deleteProducts(ids);
+                return "Products with ids " + ids + " have been deleted.";
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>只能应用于控制器类的方法上，不能用于类上。</li>
+        <li>可与类上的 <code>@RequestMapping</code> 注解结合使用，共同确定请求的完整路径。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring 容器启动时，<code>RequestMappingHandlerMapping</code> 扫描所有带有 <code>@DeleteMapping</code> 注解的方法。</li>
+                <li>解析注解中的请求路径等属性，将其封装成映射信息存储在内部的映射表中。</li>
+            </ul>
+        </li>
+        <li><strong>请求匹配阶段</strong>
+            <ul>
+                <li>当客户端发送 HTTP DELETE 请求时，<code>DispatcherServlet</code> 接收请求并调用 <code>RequestMappingHandlerMapping</code>。</li>
+                <li><code>RequestMappingHandlerMapping</code> 根据请求的 URL 在映射表中查找匹配的处理器方法。</li>
+            </ul>
+        </li>
+        <li><strong>方法调用阶段</strong>
+            <ul>
+                <li>若找到匹配的处理器方法，<code>DispatcherServlet</code> 调用该方法，并将请求的相关信息传递给方法的参数。</li>
+                <li>方法执行完毕后，将返回值通过视图解析器或消息转换器处理后返回给客户端。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>删除单个资源</td>
+            <td>使用 <code>@DeleteMapping</code> 结合路径变量处理删除单个资源的请求。</td>
+            <td><pre><code>@DeleteMapping("/articles/{articleId}") public String deleteArticle(@PathVariable("articleId") Long articleId) {...}</code></pre></td>
+        </tr>
+        <tr>
+            <td>批量删除资源</td>
+            <td>通过请求参数传递多个资源的标识，使用 <code>@DeleteMapping</code> 处理批量删除请求。</td>
+            <td><pre><code>@DeleteMapping("/comments") public String deleteComments(@RequestParam("commentIds") List&lt;Long&gt; commentIds) {...}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求的 URL 路径，可以是一个或多个路径。</td>
+        </tr>
+        <tr>
+            <td>path</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>和 <code>value</code> 作用相同，指定请求的 URL 路径。</td>
+        </tr>
+        <tr>
+            <td>params</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求必须包含的请求参数及其值，例如 <code>"param1=value1"</code>。</td>
+        </tr>
+        <tr>
+            <td>headers</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求必须包含的请求头及其值，例如 <code>"X-Requested-With=XMLHttpRequest"</code>。</td>
+        </tr>
+        <tr>
+            <td>consumes</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定请求的媒体类型，例如 <code>"application/json"</code>。</td>
+        </tr>
+        <tr>
+            <td>produces</td>
+            <td>String[]</td>
+            <td>{}（空数组）</td>
+            <td>指定响应的媒体类型，例如 <code>"application/json;charset=UTF-8"</code>。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.web.bind.annotation.*;
+
+        import java.util.ArrayList;
+        import java.util.List;
+
+        // 定义用户类
+        class User {
+            private Long id;
+            private String name;
+
+            public User() {}
+
+            public User(Long id, String name) {
+                this.id = id;
+                this.name = name;
+            }
+
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
+
+        // 模拟用户服务类
+        class UserService {
+            private List&lt;User&gt; users = new ArrayList&lt;&gt;();
+
+            public UserService() {
+                users.add(new User(1L, "Alice"));
+                users.add(new User(2L, "Bob"));
+            }
+
+            public void deleteUser(Long id) {
+                users.removeIf(user -&gt; user.getId().equals(id));
+            }
+
+            public void deleteUsers(List&lt;Long&gt; ids) {
+                ids.forEach(id -&gt; users.removeIf(user -&gt; user.getId().equals(id)));
+            }
+        }
+
+        // 控制器类
+        @RestController
+        @RequestMapping("/api")
+        public class MyController {
+
+            private UserService userService = new UserService();
+
+            // 处理 DELETE 请求删除用户
+            @DeleteMapping("/users/{id}")
+            public String deleteUser(@PathVariable("id") Long id) {
+                userService.deleteUser(id);
+                return "User with id " + id + " has been deleted.";
+            }
+
+            // 处理 DELETE 请求批量删除用户
+            @DeleteMapping("/users")
+            public String deleteUsers(@RequestParam("ids") List&lt;Long&gt; ids) {
+                userService.deleteUsers(ids);
+                return "Users with ids " + ids + " have been deleted.";
+            }
+        }
+
+        // 验证代码
+        public class DeleteMappingTest {
+            public static void main(String[] args) {
+                // 这里省略 Spring 容器启动和请求发送的代码，实际中可使用 Spring Boot 或 Spring MVC 测试框架进行测试
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>当发送 <code>DELETE /api/users/{id}</code> 请求时，会删除指定 ID 的用户，并返回删除成功的消息。</li>
+        <li>当发送 <code>DELETE /api/users?ids=1,2</code> 请求时，会批量删除指定 ID 的用户，并返回删除成功的消息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

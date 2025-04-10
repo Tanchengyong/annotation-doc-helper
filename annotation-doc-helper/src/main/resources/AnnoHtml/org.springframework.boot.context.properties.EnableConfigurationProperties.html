@@ -1,0 +1,255 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@EnableConfigurationProperties</code> 是 Spring Boot 框架里的注解，用于启用 <code>@ConfigurationProperties</code> 注解标注的类。此注解能让 Spring Boot 把配置文件里的属性值绑定到使用 <code>@ConfigurationProperties</code> 注解的 Java 类上。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>激活配置属性绑定：开启 <code>@ConfigurationProperties</code> 注解的功能，让 Spring Boot 对配置属性进行绑定操作。</li>
+        <li>注册配置属性 Bean：把使用 <code>@ConfigurationProperties</code> 注解的类注册成 Spring Bean，这样在其他组件里就能通过依赖注入来使用这些配置属性。</li>
+        <li>简化配置管理：将配置文件和 Java 类关联起来，使配置管理更加便捷、清晰。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring Boot 注解 (Spring Boot Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        ConfigurationPropertiesBindingPostProcessor
+               ↓
+        @EnableConfigurationProperties
+               ↓
+        @ConfigurationProperties
+    </code></pre>
+    <p>Spring Boot 启动时，<code>ConfigurationPropertiesBindingPostProcessor</code> 负责处理配置属性的绑定。<code>@EnableConfigurationProperties</code> 注解会通知 <code>ConfigurationPropertiesBindingPostProcessor</code> 对指定的使用 <code>@ConfigurationProperties</code> 注解的类进行属性绑定操作。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.boot.context.properties.ConfigurationProperties;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        @ConfigurationProperties(prefix = "myapp")
+        public class MyAppProperties {
+            private String name;
+            private int version;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getVersion() {
+                return version;
+            }
+
+            public void setVersion(int version) {
+                this.version = version;
+            }
+        }
+
+        import org.springframework.boot.context.properties.EnableConfigurationProperties;
+        import org.springframework.context.annotation.Configuration;
+
+        @Configuration
+        @EnableConfigurationProperties(MyAppProperties.class)
+        public class AppConfig {
+            // 配置类其他内容
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解通常用在配置类上，配置类需要使用 <code>@Configuration</code> 注解。</li>
+        <li>注解的参数是使用 <code>@ConfigurationProperties</code> 注解的类的数组，可指定一个或多个类。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>注解解析阶段</strong>
+            <ul>
+                <li>Spring Boot 启动时，会扫描带有 <code>@EnableConfigurationProperties</code> 注解的配置类。</li>
+                <li>解析注解中的参数，获取要启用的使用 <code>@ConfigurationProperties</code> 注解的类。</li>
+            </ul>
+        </li>
+        <li><strong>Bean 注册阶段</strong>
+            <ul>
+                <li>将指定的使用 <code>@ConfigurationProperties</code> 注解的类注册为 Spring Bean。</li>
+            </ul>
+        </li>
+        <li><strong>属性绑定阶段</strong>
+            <ul>
+                <li><code>ConfigurationPropertiesBindingPostProcessor</code> 会对注册的 Bean 进行属性绑定。</li>
+                <li>从配置文件（如 <code>application.properties</code> 或 <code>application.yml</code>）中读取与 Bean 对应的配置属性，并将其绑定到 Bean 的属性上。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>模块化配置管理</td>
+            <td>在模块化开发中，每个模块有自己的配置属性类，使用 <code>@EnableConfigurationProperties</code> 在模块配置类中启用这些属性类，实现模块化的配置管理。</td>
+            <td><pre><code>@Component
+@ConfigurationProperties(prefix = "module1")
+public class Module1Properties {
+    // 属性及方法
+}
+
+@Configuration
+@EnableConfigurationProperties(Module1Properties.class)
+public class Module1Config {
+    // 模块 1 配置
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>多环境配置</td>
+            <td>在不同的环境（开发、测试、生产）中，配置属性可能不同。使用 <code>@EnableConfigurationProperties</code> 可以方便地在不同环境下加载不同的配置属性。</td>
+            <td><pre><code>@Component
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+    // 属性及方法
+}
+
+@Configuration
+@EnableConfigurationProperties(AppProperties.class)
+public class AppConfig {
+    // 应用配置
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>第三方库配置集成</td>
+            <td>当集成第三方库时，第三方库可能有自己的配置属性类，使用 <code>@EnableConfigurationProperties</code> 可以将这些配置属性类集成到 Spring Boot 应用中。</td>
+            <td><pre><code>@Component
+@ConfigurationProperties(prefix = "thirdparty")
+public class ThirdPartyProperties {
+    // 属性及方法
+}
+
+@Configuration
+@EnableConfigurationProperties(ThirdPartyProperties.class)
+public class ThirdPartyConfig {
+    // 第三方库配置
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>Class[]</td>
+            <td>{}（空数组）</td>
+            <td>指定要启用的使用 <code>@ConfigurationProperties</code> 注解的类的数组。这些类的配置属性会被绑定并注册为 Spring Bean。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.boot.context.properties.ConfigurationProperties;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        @ConfigurationProperties(prefix = "myapp")
+        public class MyAppProperties {
+            private String name;
+            private int version;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getVersion() {
+                return version;
+            }
+
+            public void setVersion(int version) {
+                this.version = version;
+            }
+        }
+
+        import org.springframework.boot.context.properties.EnableConfigurationProperties;
+        import org.springframework.context.annotation.Configuration;
+
+        @Configuration
+        @EnableConfigurationProperties(MyAppProperties.class)
+        public class AppConfig {
+            // 配置类其他内容
+        }
+
+        import org.springframework.beans.factory.annotation.Autowired;
+        import org.springframework.boot.CommandLineRunner;
+        import org.springframework.stereotype.Component;
+
+        @Component
+        class MyAppRunner implements CommandLineRunner {
+            @Autowired
+            private MyAppProperties myAppProperties;
+
+            @Override
+            public void run(String... args) throws Exception {
+                System.out.println("App Name: " + myAppProperties.getName());
+                System.out.println("App Version: " + myAppProperties.getVersion());
+            }
+        }
+
+        // 配置文件 application.properties 示例
+        // myapp.name=My Test App
+        // myapp.version=2
+
+        // 验证代码
+        import org.springframework.boot.SpringApplication;
+        import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+        @SpringBootApplication
+        public class MyApp {
+            public static void main(String[] args) {
+                SpringApplication.run(MyApp.class, args);
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>启动 <code>MyApp</code> 应用时，<code>@EnableConfigurationProperties</code> 注解会启用 <code>MyAppProperties</code> 类的配置属性绑定。</li>
+        <li>Spring Boot 会将 <code>application.properties</code> 中以 <code>myapp.</code> 开头的属性值绑定到 <code>MyAppProperties</code> 类的对应属性上。</li>
+        <li><code>MyAppRunner</code> 类会在应用启动后执行，打印出绑定后的应用名称和版本信息。</li>
+    </ul>
+</div>
+
+</body>
+</html>

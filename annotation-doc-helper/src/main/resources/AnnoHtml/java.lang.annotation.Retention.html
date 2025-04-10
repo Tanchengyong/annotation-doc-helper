@@ -1,0 +1,171 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Retention</code> 是 Java 语言中的元注解，用于指定被修饰注解的生命周期保留策略。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>控制注解在编译、类加载和运行时的保留行为。</li>
+        <li>决定注解是否可被反射获取或工具处理。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>元注解 (Meta Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Java 编译器 → 类加载器 → JVM 运行时
+               ↓
+        RetentionPolicy 枚举值
+    </code></pre>
+    <p>通过枚举值控制注解在不同阶段的可见性。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        // 声明自定义注解时使用
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target(ElementType.TYPE)
+        public @interface MyAnnotation {
+            String value() default "";
+        }
+
+        // 应用自定义注解
+        @MyAnnotation("Example")
+        public class MyClass {
+            // 类实现
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>仅能用于注解声明的上方。</li>
+        <li>必须与 <code>@Target</code> 配合使用以指定注解的适用范围。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>编译阶段</strong>
+            <ul>
+                <li>编译器根据 <code>RetentionPolicy</code> 决定是否将注解写入字节码。</li>
+                <li>若策略为 <code>SOURCE</code>，注解在编译后丢弃。</li>
+            </ul>
+        </li>
+        <li><strong>类加载阶段</strong>
+            <ul>
+                <li>若策略为 <code>CLASS</code>，注解保留在字节码中但 JVM 不读取。</li>
+            </ul>
+        </li>
+        <li><strong>运行时阶段</strong>
+            <ul>
+                <li>若策略为 <code>RUNTIME</code>，JVM 会加载注解信息供反射使用。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>框架元数据</td>
+            <td>使用 <code>RUNTIME</code> 策略供反射读取</td>
+            <td><pre><code>@Retention(RUNTIME) @Component</code></pre></td>
+        </tr>
+        <tr>
+            <td>代码生成</td>
+            <td>使用 <code>CLASS</code> 策略供工具解析字节码</td>
+            <td><pre><code>@Retention(CLASS) @Generated</code></pre></td>
+        </tr>
+        <tr>
+            <td>编译检查</td>
+            <td>使用 <code>SOURCE</code> 策略供编译器处理</td>
+            <td><pre><code>@Retention(SOURCE) @SuppressWarnings</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>RetentionPolicy</td>
+            <td>CLASS</td>
+            <td>指定注解的保留策略，可选值：
+                <ul>
+                    <li><code>SOURCE</code> - 仅在源码阶段保留</li>
+                    <li><code>CLASS</code> - 保留到字节码阶段</li>
+                    <li><code>RUNTIME</code> - 保留到运行时</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        // 定义保留到运行时的注解
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target(ElementType.TYPE)
+        public @interface RuntimeAnnotation {
+            String name();
+        }
+
+        // 定义仅保留到字节码的注解
+        @Retention(RetentionPolicy.CLASS)
+        @Target(ElementType.FIELD)
+        public @interface ClassAnnotation {
+            int version() default 1;
+        }
+
+        // 使用注解
+        @RuntimeAnnotation(name = "MyClass")
+        public class AnnotationDemo {
+            @ClassAnnotation(version = 2)
+            private String field;
+
+            public static void main(String[] args) throws Exception {
+                // 反射获取运行时注解
+                RuntimeAnnotation runtimeAnno =
+                    AnnotationDemo.class.getAnnotation(RuntimeAnnotation.class);
+                System.out.println("Runtime Annotation: " + runtimeAnno.name());
+
+                // 尝试获取类注解（不可见）
+                ClassAnnotation classAnno =
+                    AnnotationDemo.class.getDeclaredField("field").getAnnotation(ClassAnnotation.class);
+                System.out.println("Class Annotation: " + classAnno.version()); // 编译错误
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>成功打印运行时注解信息。</li>
+        <li>无法通过反射获取 <code>CLASS</code> 策略的注解（需字节码工具解析）。</li>
+    </ul>
+</div>
+
+</body>
+</html>

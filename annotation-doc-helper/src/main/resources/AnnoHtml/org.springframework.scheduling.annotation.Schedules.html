@@ -1,0 +1,238 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@Schedules</code> 是 Spring 框架中的注解，它作为 <code>@Scheduled</code> 注解的容器，允许在一个方法上同时配置多个定时任务调度规则。当一个方法需要按照多种不同的时间策略执行时，使用 <code>@Schedules</code> 注解能方便地将多个 <code>@Scheduled</code> 注解组合在一起。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>灵活配置：让同一个方法可以根据不同的时间规则多次执行，满足多样化的业务需求。例如，一个数据同步方法可能既需要每隔一段时间进行增量同步，又需要在特定时间点进行全量同步。</li>
+        <li>代码复用：避免为了实现不同时间规则的任务而重复编写相同的业务逻辑代码，提高代码的复用性和可维护性。</li>
+        <li>简化管理：将多个定时任务配置集中在一个方法上，便于统一管理和调整定时任务的调度规则。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>Spring 定时任务组合注解 (Spring Scheduled Task Combination Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Spring Framework
+               ↓
+        @EnableScheduling
+               ↓
+        @Schedules
+               ↓
+        Multiple @Scheduled Annotations
+               ↓
+        Scheduled Task Execution
+    </code></pre>
+    <p>在 Spring 体系中，<code>@Schedules</code> 注解依赖于 <code>@EnableScheduling</code> 注解来开启定时任务调度功能。它内部包含多个 <code>@Scheduled</code> 注解，每个 <code>@Scheduled</code> 注解定义了一个具体的定时任务调度规则。Spring 会根据这些规则，在合适的时间点触发被 <code>@Schedules</code> 注解标注的方法执行。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import org.springframework.scheduling.annotation.Scheduled;
+        import org.springframework.scheduling.annotation.Schedules;
+        import org.springframework.stereotype.Service;
+
+        @Service
+        public class MultiScheduledTaskService {
+
+            @Schedules({
+                    // 每 10 分钟执行一次
+                    @Scheduled(fixedRate = 600000),
+                    // 每天凌晨 3 点执行
+                    @Scheduled(cron = "0 0 3 * * ?")
+            })
+            public void multiScheduledTask() {
+                System.out.println("Multi - scheduled task executed.");
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>该注解用于 Spring 管理的 Bean 中的方法上，如使用 <code>@Service</code>、<code>@Component</code> 等注解标注的类中的方法。</li>
+        <li>被 <code>@Schedules</code> 注解标注的方法必须是无参数、无返回值（返回类型为 <code>void</code>）的方法。</li>
+        <li>在 <code>@Schedules</code> 注解中，每个 <code>@Scheduled</code> 注解的时间配置参数不能冲突，且每个 <code>@Scheduled</code> 注解都应遵循其自身的使用规范。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>配置解析</strong>
+            <ul>
+                <li>当 Spring 容器启动时，会扫描带有 <code>@Configuration</code> 注解的配置类，并解析其中的 <code>@EnableScheduling</code> 注解，创建定时任务调度器。</li>
+                <li>接着，Spring 会扫描所有被 <code>@Schedules</code> 注解标注的方法，解析其中包含的多个 <code>@Scheduled</code> 注解，将每个 <code>@Scheduled</code> 注解对应的定时任务配置提取出来。</li>
+            </ul>
+        </li>
+        <li><strong>任务注册</strong>
+            <ul>
+                <li>对于每个 <code>@Scheduled</code> 注解的配置，Spring 会将其封装成一个独立的定时任务对象。</li>
+                <li>将这些定时任务对象注册到定时任务调度器中，每个任务都有自己独立的调度规则。</li>
+            </ul>
+        </li>
+        <li><strong>任务执行</strong>
+            <ul>
+                <li>定时任务调度器会根据每个任务的时间规则，在合适的时间点触发相应的定时任务。</li>
+                <li>当任务触发时，调度器会调用被 <code>@Schedules</code> 注解标注的方法，执行相应的业务逻辑。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据同步</td>
+            <td>一个数据同步方法，既需要每隔 30 分钟进行一次增量数据同步，又需要在每天凌晨 4 点进行全量数据同步。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
+import org.springframework.stereotype.Service;
+
+@Service
+public class DataSyncService {
+
+    @Schedules({
+            @Scheduled(fixedRate = 1800000),
+            @Scheduled(cron = "0 0 4 * * ?")
+    })
+    public void syncData() {
+        System.out.println("Data synchronization task executed.");
+        // 具体的数据同步逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>系统监控</td>
+            <td>一个系统监控方法，需要每隔 5 分钟检查一次系统资源使用情况，并且在每天中午 12 点生成一份系统资源使用报告。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
+import org.springframework.stereotype.Service;
+
+@Service
+public class SystemMonitorService {
+
+    @Schedules({
+            @Scheduled(fixedRate = 300000),
+            @Scheduled(cron = "0 0 12 * * ?")
+    })
+    public void monitorSystem() {
+        System.out.println("System monitoring task executed.");
+        // 具体的系统监控逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+        <tr>
+            <td>营销活动提醒</td>
+            <td>一个营销活动提醒方法，需要在活动开始前 1 小时和活动开始时分别提醒用户。</td>
+            <td><pre><code>
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MarketingReminderService {
+
+    @Schedules({
+            // 假设活动开始时间对应的 cron 表达式是 startCron，前 1 小时的 cron 表达式是 oneHourBeforeCron
+            @Scheduled(cron = "oneHourBeforeCron"),
+            @Scheduled(cron = "startCron")
+    })
+    public void remindUsers() {
+        System.out.println("Marketing activity reminder sent.");
+        // 具体的提醒逻辑
+    }
+}
+</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>value</td>
+            <td>@Scheduled[]</td>
+            <td>无</td>
+            <td>这是 <code>@Schedules</code> 注解的核心参数，它是一个 <code>@Scheduled</code> 注解数组，用于指定多个定时任务的调度规则。每个 <code>@Scheduled</code> 注解可以使用 <code>fixedRate</code>、<code>fixedDelay</code>、<code>cron</code> 等参数来定义具体的时间规则。</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+        import org.springframework.context.annotation.Configuration;
+        import org.springframework.scheduling.annotation.EnableScheduling;
+        import org.springframework.scheduling.annotation.Scheduled;
+        import org.springframework.scheduling.annotation.Schedules;
+        import org.springframework.stereotype.Service;
+
+        // 配置类
+        @Configuration
+        @EnableScheduling
+        public class AppConfig {
+            // 配置相关信息
+        }
+
+        // 服务类
+        @Service
+        public class MyMultiScheduledService {
+
+            @Schedules({
+                    @Scheduled(fixedRate = 3000),
+                    @Scheduled(cron = "0/5 * * * * ?")
+            })
+            public void multiScheduledMethod() {
+                System.out.println("Multi - scheduled method executed.");
+            }
+        }
+
+        // 主类
+        public class Main {
+            public static void main(String[] args) {
+                AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+                // 保持程序运行
+                try {
+                    Thread.sleep(Long.MAX_VALUE);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>程序启动后，<code>MyMultiScheduledService</code> 类中的 <code>multiScheduledMethod</code> 方法会按照两个不同的时间规则执行。一方面，每隔 3 秒会执行一次；另一方面，每秒数为 0 或 5 的时候也会执行一次。每次执行时，会输出 <code>Multi - scheduled method executed.</code>。</li>
+    </ul>
+</div>
+
+</body>
+</html>

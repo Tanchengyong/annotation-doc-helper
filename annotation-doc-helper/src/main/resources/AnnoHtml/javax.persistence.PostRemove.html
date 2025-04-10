@@ -1,0 +1,250 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PostRemove</code> 是 Java Persistence API (JPA) 中的一个生命周期回调注解，用于标注实体类中的方法。当实体对象被从数据库中删除后，JPA 会立即调用该方法。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>资源清理：释放与实体关联的文件、连接等资源。</li>
+        <li>审计记录：记录删除操作的时间、用户等信息。</li>
+        <li>业务补偿：执行删除后的关联操作（如通知其他系统）。</li>
+        <li>缓存更新：同步删除后的状态到缓存系统。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 生命周期回调注解 (Lifecycle Callback)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager.remove()
+               ↓
+        PersistenceProvider
+               ↓
+        @PostRemove
+               ↓
+        Cleanup Operations
+    </code></pre>
+    <p>当调用 <code>EntityManager.remove()</code> 方法删除实体时，JPA 在数据库操作完成后触发该注解标注的方法。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Entity
+        public class Document {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String filePath;
+
+            @PostRemove
+            public void cleanupFile() {
+                FileUtil.deleteFile(filePath); // 模拟文件删除
+                System.out.println("Deleted file: " + filePath);
+            }
+
+            // Getters 和 Setters
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>标注在实体类的方法上，方法需满足：</li>
+        <ul>
+            <li>无参数</li>
+            <li>返回类型为 void</li>
+            <li>非静态方法</li>
+            <li>不抛出 checked 异常</li>
+        </ul>
+        <li>方法执行时实体已处于 Removed 状态，无法修改其属性</li>
+        <li>父类的 <code>@PostRemove</code> 方法会在子类方法之后执行</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 扫描实体类时识别所有 <code>@PostRemove</code> 方法</li>
+                <li>建立方法与实体类的关联</li>
+            </ul>
+        </li>
+        <li><strong>删除操作阶段</strong>
+            <ul>
+                <li>调用 <code>EntityManager.remove()</code> 标记实体为删除</li>
+                <li>事务提交时生成 DELETE SQL 并执行</li>
+            </ul>
+        </li>
+        <li><strong>回调触发阶段</strong>
+            <ul>
+                <li>数据库操作成功后，JPA 调用 <code>@PostRemove</code> 方法</li>
+                <li>方法中可访问实体的历史状态（但无法修改）</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>文件清理</td>
+            <td>删除数据库记录时同步删除关联文件</td>
+            <td><pre><code>@Entity
+public class FileEntity {
+    private String path;
+    
+    @PostRemove
+    public void deleteFile() {
+        FileSystem.delete(path);
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存失效</td>
+            <td>删除实体后清除相关缓存</td>
+            <td><pre><code>@Entity
+public class Product {
+    @PostRemove
+    public void invalidateCache() {
+        CacheManager.getInstance().evict(this.getId());
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>审计日志</td>
+            <td>记录删除操作的详细信息</td>
+            <td><pre><code>@Entity
+public class User {
+    private String username;
+    
+    @PostRemove
+    public void logDeletion() {
+        AuditLogger.log("User " + username + " deleted");
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+
+        @Entity
+        public class Order {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String orderNumber;
+            private boolean isDeleted;
+
+            @PostRemove
+            public void handlePostRemove() {
+                System.out.println("Order " + orderNumber + " has been deleted");
+                // 模拟通知外部系统
+                NotificationService.sendNotification("Order deleted: " + orderNumber);
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getOrderNumber() {
+                return orderNumber;
+            }
+
+            public void setOrderNumber(String orderNumber) {
+                this.orderNumber = orderNumber;
+            }
+
+            public boolean isDeleted() {
+                return isDeleted;
+            }
+        }
+
+        class NotificationService {
+            public static void sendNotification(String message) {
+                System.out.println("Notification: " + message);
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    // 创建订单
+                    Order order = new Order();
+                    order.setOrderNumber("ORD-123");
+                    em.persist(order);
+
+                    em.getTransaction().commit();
+
+                    // 删除订单
+                    em.getTransaction().begin();
+                    Order deletedOrder = em.find(Order.class, order.getId());
+                    em.remove(deletedOrder);
+                    em.getTransaction().commit();
+
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>订单删除后输出日志：<code>Order ORD-123 has been deleted</code></li>
+        <li>触发通知服务输出：<code>Notification: Order deleted: ORD-123</code></li>
+        <li>验证实体状态无法修改（删除后调用 <code>isDeleted()</code> 仍为 <code>false</code>）</li>
+    </ul>
+</div>
+
+</body>
+</html>

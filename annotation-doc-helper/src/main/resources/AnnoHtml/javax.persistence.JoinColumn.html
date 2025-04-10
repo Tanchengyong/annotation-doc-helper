@@ -1,0 +1,241 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>javax.persistence.JoinColumn</code> 是 JPA 中用于定义实体关联外键列的注解。它通过指定数据库表中的外键名称和引用关系，将实体间的关联关系映射到物理数据库结构。该注解通常与 <code>@OneToOne</code>、<code>@OneToMany</code> 等关联注解配合使用，实现实体与数据库表的外键映射。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>外键定义：明确指定关联表中外键列的名称和引用规则。</li>
+        <li>关系控制：精确控制关联关系的级联操作和数据完整性约束。</li>
+        <li>物理映射：将逻辑关联关系转换为数据库物理外键，确保数据一致性。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 实体关联映射注解 (Entity Association Mapping Annotation)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        Entity Relationship
+               ↓
+        @JoinColumn
+               ↓
+        Database Foreign Key Constraint
+    </code></pre>
+    <p>JPA 通过 <code>@JoinColumn</code> 注解将实体属性映射到数据库外键列，定义外键名称、引用列和约束条件。当执行持久化操作时，JPA 会根据这些配置生成相应的 SQL 语句，确保关联数据的一致性。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.OneToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class User {
+            @Id
+            private Long id;
+            private String username;
+
+            @OneToOne
+            @JoinColumn(name = "address_id", referencedColumnName = "id", unique = true)
+            private Address address;
+
+            // getters and setters
+        }
+
+        @Entity
+        public class Address {
+            @Id
+            private Long id;
+            private String street;
+
+            // getters and setters
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>作用于实体类的关联属性（如 <code>@OneToOne</code>、<code>@OneToMany</code> 标注的属性）。</li>
+        <li>在双向关联中，通常在关系的拥有方使用（非 <code>mappedBy</code> 侧）。</li>
+        <li>可通过 <code>name</code> 指定外键列名，通过 <code>referencedColumnName</code> 指定引用的主键列名。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 扫描到 <code>@JoinColumn</code> 注解时，解析其属性（如 <code>name</code>、<code>referencedColumnName</code>）。</li>
+                <li>将外键配置信息存储到 JPA 元数据中，用于生成数据库表结构和 SQL 语句。</li>
+            </ul>
+        </li>
+        <li><strong>数据库操作阶段</strong>
+            <ul>
+                <li>执行插入操作时，JPA 会将关联实体的主键值写入当前实体的外键列。</li>
+                <li>查询时根据外键关系自动关联表，获取关联实体数据。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>用户与地址关联</td>
+            <td>使用 <code>@JoinColumn</code> 定义用户表中的地址外键</td>
+            <td><pre><code>@OneToOne
+@JoinColumn(name = "address_id")
+private Address address;</code></pre></td>
+        </tr>
+        <tr>
+            <td>订单与支付信息关联</td>
+            <td>在订单表中创建支付信息外键</td>
+            <td><pre><code>@OneToOne
+@JoinColumn(name = "payment_id", nullable = false)
+private Payment payment;</code></pre></td>
+        </tr>
+        <tr>
+            <td>部门与负责人关联</td>
+            <td>部门表外键引用员工表主键</td>
+            <td><pre><code>@OneToOne
+@JoinColumn(name = "manager_id", referencedColumnName = "emp_id")
+private Employee manager;</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数详解 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>关联属性名 + "_id"</td>
+            <td>指定外键列名称</td>
+        </tr>
+        <tr>
+            <td>referencedColumnName</td>
+            <td>String</td>
+            <td>"id"</td>
+            <td>指定引用的主键列名称</td>
+        </tr>
+        <tr>
+            <td>unique</td>
+            <td>boolean</td>
+            <td>false</td>
+            <td>设置外键列是否唯一</td>
+        </tr>
+        <tr>
+            <td>nullable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置外键列是否允许为空</td>
+        </tr>
+        <tr>
+            <td>insertable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置外键列是否可插入</td>
+        </tr>
+        <tr>
+            <td>updatable</td>
+            <td>boolean</td>
+            <td>true</td>
+            <td>设置外键列是否可更新</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.Entity;
+        import javax.persistence.Id;
+        import javax.persistence.OneToOne;
+        import javax.persistence.JoinColumn;
+
+        @Entity
+        public class Customer {
+            @Id
+            private Long id;
+            private String name;
+
+            @OneToOne
+            @JoinColumn(name = "profile_id", unique = true)
+            private CustomerProfile profile;
+
+            // getters and setters
+        }
+
+        @Entity
+        public class CustomerProfile {
+            @Id
+            private Long id;
+            private String email;
+
+            // getters and setters
+        }
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.EntityManagerFactory;
+        import javax.persistence.Persistence;
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("myPU");
+                EntityManager em = emf.createEntityManager();
+
+                Customer customer = new Customer();
+                customer.setId(1L);
+                customer.setName("John Doe");
+
+                CustomerProfile profile = new CustomerProfile();
+                profile.setId(1L);
+                profile.setEmail("john@example.com");
+
+                customer.setProfile(profile);
+
+                em.getTransaction().begin();
+                em.persist(customer);
+                em.getTransaction().commit();
+
+                Customer loadedCustomer = em.find(Customer.class, 1L);
+                System.out.println("Customer Email: " + loadedCustomer.getProfile().getEmail());
+
+                em.close();
+                emf.close();
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>创建 <code>Customer</code> 和 <code>CustomerProfile</code> 表，<code>Customer</code> 表包含名为 <code>profile_id</code> 的外键列</li>
+        <li>保存关联数据时自动填充外键值</li>
+        <li>查询时通过外键关联获取完整的客户信息</li>
+    </ul>
+</div>
+
+</body>
+</html>

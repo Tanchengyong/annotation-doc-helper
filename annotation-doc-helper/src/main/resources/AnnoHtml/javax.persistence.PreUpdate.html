@@ -1,0 +1,307 @@
+<html lang="">
+${style}
+<body>
+
+<h1> ${annoName} 注解用法详解</h1>
+<span class="resource">来源：</span><span class="package">${annoNamePackage}</span>
+
+<!-- ========== 1. 定义与作用 ========== -->
+<div class="section">
+    <h2>&#x1F680 1. 定义与作用</h2>
+    <p><strong>技术定义：</strong></p>
+    <p><code>@PreUpdate</code> 是 Java Persistence API (JPA) 中的一个生命周期回调注解，用于标注实体类中的方法。当实体对象即将被更新到数据库之前，JPA 会调用该方法，允许开发者在实体更新操作执行前进行一些预处理操作。</p>
+
+    <p><strong>核心作用：</strong></p>
+    <ul>
+        <li>数据验证：在更新操作执行前检查实体数据的有效性，确保只有合法的数据被更新到数据库。</li>
+        <li>数据预处理：对实体的属性进行一些计算、转换或格式化操作，以满足业务需求。</li>
+        <li>审计记录：记录更新操作的相关信息，如更新时间、更新人等。</li>
+        <li>关联操作：在实体更新前执行一些关联的操作，如更新相关的缓存数据。</li>
+    </ul>
+</div>
+
+<!-- ========== 2. 所属类别 ========== -->
+<div class="section">
+    <h2>&#128204 2. 所属类别</h2>
+    <p><strong>类型：</strong> <code>JPA 生命周期回调注解 (Lifecycle Callback)</code></p>
+    <p><strong>关联机制：</strong></p>
+    <pre><code>
+        EntityManager.merge()
+               ↓
+        PersistenceProvider
+               ↓
+        @PreUpdate
+               ↓
+        Pre-Update Operations
+    </code></pre>
+    <p>当调用 <code>EntityManager.merge()</code> 方法触发实体更新时，JPA 在生成并执行 UPDATE SQL 语句之前，会触发 <code>@PreUpdate</code> 注解标注的方法。</p>
+</div>
+
+<!-- ========== 3. 使用位置 ========== -->
+<div class="section">
+    <h2>&#127757 3. 使用位置</h2>
+    <p><strong>代码示例：</strong></p>
+    <pre><code>
+        import javax.persistence.*;
+        import java.util.Date;
+
+        @Entity
+        public class Employee {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String name;
+            private double salary;
+            private Date lastUpdated;
+
+            @PreUpdate
+            public void preUpdateAction() {
+                this.lastUpdated = new Date(); // 更新最后更新时间
+                if (this.salary < 0) {
+                    throw new IllegalArgumentException("Salary cannot be negative.");
+                }
+                System.out.println("About to update employee " + name + " at " + lastUpdated);
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public double getSalary() {
+                return salary;
+            }
+
+            public void setSalary(double salary) {
+                this.salary = salary;
+            }
+
+            public Date getLastUpdated() {
+                return lastUpdated;
+            }
+        }
+    </code></pre>
+
+    <p><strong>应用规范：</strong></p>
+    <ul>
+        <li>标注在实体类的方法上，方法需满足：</li>
+        <ul>
+            <li>无参数</li>
+            <li>返回类型为 void</li>
+            <li>非静态方法</li>
+            <li>不抛出 checked 异常</li>
+        </ul>
+        <li>方法执行时实体处于 Managed 状态，开发者可以修改实体的属性。</li>
+        <li>父类的 <code>@PreUpdate</code> 方法会在子类方法之前执行。</li>
+    </ul>
+</div>
+
+<!-- ========== 4. 工作原理 ========== -->
+<div class="section">
+    <h2>&#9881 4. 工作原理</h2>
+    <ol>
+        <li><strong>元数据解析阶段</strong>
+            <ul>
+                <li>JPA 扫描实体类时识别所有 <code>@PreUpdate</code> 方法。</li>
+                <li>建立方法与实体类的关联。</li>
+            </ul>
+        </li>
+        <li><strong>更新操作阶段</strong>
+            <ul>
+                <li>调用 <code>EntityManager.merge()</code> 触发实体更新。</li>
+                <li>JPA 检测到实体状态发生变化，准备生成 UPDATE SQL 语句。</li>
+            </ul>
+        </li>
+        <li><strong>回调触发阶段</strong>
+            <ul>
+                <li>在生成并执行 UPDATE SQL 语句之前，JPA 调用 <code>@PreUpdate</code> 方法。</li>
+                <li>开发者可以在方法中对实体属性进行修改或验证。</li>
+                <li>如果方法抛出异常，更新操作将被终止。</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<!-- ========== 5. 使用场景 ========== -->
+<div class="section">
+    <h2>&#128161 5. 使用场景</h2>
+    <table>
+        <tr><th>场景</th><th>解决方案</th><th>技术实现</th></tr>
+        <tr>
+            <td>数据验证</td>
+            <td>在更新前检查实体属性是否符合业务规则。</td>
+            <td><pre><code>@Entity
+public class Product {
+    private double price;
+
+    @PreUpdate
+    public void validatePrice() {
+        if (price < 0) {
+            throw new IllegalArgumentException("Price cannot be negative.");
+        }
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>更新审计信息</td>
+            <td>自动记录更新时间和更新人。</td>
+            <td><pre><code>@Entity
+public class Customer {
+    private Date lastUpdated;
+    private String updatedBy;
+
+    @PreUpdate
+    public void updateAuditInfo() {
+        this.lastUpdated = new Date();
+        this.updatedBy = SecurityContext.getCurrentUser();
+    }
+}</code></pre></td>
+        </tr>
+        <tr>
+            <td>缓存预清理</td>
+            <td>在实体更新前清理相关的缓存。</td>
+            <td><pre><code>@Entity
+public class Article {
+    @PreUpdate
+    public void clearCache() {
+        CacheManager.clearCache("article_" + getId());
+    }
+}</code></pre></td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 6. 参数说明 ========== -->
+<div class="section">
+    <h2>&#128295 6. 参数详解</h2>
+    <table>
+        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+        <tr>
+            <td colspan="4">该注解没有参数</td>
+        </tr>
+    </table>
+</div>
+
+<!-- ========== 7. 完整示例 ========== -->
+<div class="section">
+    <h2>&#128187 7. 完整示例</h2>
+    <pre><code>
+        import javax.persistence.*;
+        import java.util.Date;
+
+        @Entity
+        public class Task {
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+            private String taskName;
+            private boolean isCompleted;
+            private Date lastUpdated;
+
+            @PreUpdate
+            public void preUpdateTask() {
+                this.lastUpdated = new Date();
+                if (this.taskName == null || this.taskName.isEmpty()) {
+                    throw new IllegalArgumentException("Task name cannot be empty.");
+                }
+                System.out.println("Preparing to update task " + taskName + " at " + lastUpdated);
+            }
+
+            // Getters 和 Setters
+            public Long getId() {
+                return id;
+            }
+
+            public void setId(Long id) {
+                this.id = id;
+            }
+
+            public String getTaskName() {
+                return taskName;
+            }
+
+            public void setTaskName(String taskName) {
+                this.taskName = taskName;
+            }
+
+            public boolean isCompleted() {
+                return isCompleted;
+            }
+
+            public void setCompleted(boolean completed) {
+                isCompleted = completed;
+            }
+
+            public Date getLastUpdated() {
+                return lastUpdated;
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                EntityManagerFactory emf = Persistence.createEntityManagerFactory("demoPU");
+                EntityManager em = emf.createEntityManager();
+
+                try {
+                    em.getTransaction().begin();
+
+                    // 创建任务
+                    Task task = new Task();
+                    task.setTaskName("Finish project");
+                    em.persist(task);
+
+                    em.getTransaction().commit();
+
+                    // 更新任务
+                    em.getTransaction().begin();
+                    Task updatedTask = em.find(Task.class, task.getId());
+                    updatedTask.setTaskName("Review project");
+                    em.merge(updatedTask);
+                    em.getTransaction().commit();
+
+                    // 尝试使用空名称更新任务（会触发异常）
+                    try {
+                        em.getTransaction().begin();
+                        Task invalidTask = em.find(Task.class, task.getId());
+                        invalidTask.setTaskName("");
+                        em.merge(invalidTask);
+                        em.getTransaction().commit();
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Update failed: " + e.getMessage());
+                        em.getTransaction().rollback();
+                    }
+
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                    emf.close();
+                }
+            }
+        }
+    </code></pre>
+    <p><strong>运行效果：</strong></p>
+    <ul>
+        <li>创建任务时不触发 <code>@PreUpdate</code>。</li>
+        <li>更新任务名称时，输出准备更新的信息，并更新最后更新时间。</li>
+        <li>尝试使用空名称更新任务时，抛出异常，更新操作被回滚。</li>
+    </ul>
+</div>
+
+</body>
+</html>
